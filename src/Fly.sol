@@ -85,21 +85,21 @@ contract Fly is ReentrancyGuard {
         policiesConfirmed.push(policyHolder[saddress(msg.sender)]);
     }
 
-    function listPolicy() external view onlyPassengers returns(Policy memory policy) {
+    function listPolicy() external onlyPassengers returns(Policy memory policy) {
         if (policyToDisplay.length > suint256(0)) {
             
             suint256 leastPremium = policyToDisplay[suint256(0)].insurancePremium;
             suint256 index;
             policy = policyToDisplay[suint256(0)];
             for (uint i = 1; suint256(i) < policyToDisplay.length; i++) {
-                if (policyToDisplay[i].insurancePremium <= leastPremium) {
+                if (policyToDisplay[suint256(i)].insurancePremium <= leastPremium) {
                     leastPremium = policyToDisplay[suint256(i)].insurancePremium;
                     policy = policyToDisplay[suint256(i)];
                     index = suint(i);
                 }
             }
 
-            policyToDisplay[index] = policyToDisplay[policyToDisplay.length - suint(1)];
+            policyToDisplay[suint256(index)] = policyToDisplay[policyToDisplay.length - suint(1)];
             policyToDisplay.pop();
 
         } else {
