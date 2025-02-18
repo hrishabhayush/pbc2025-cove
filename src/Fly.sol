@@ -25,11 +25,10 @@ contract Fly is ReentrancyGuard {
         suint256 flightPrice;
     }
 
-    
     saddress[] passengers;
     // Providers are insurers that will be insuring the passengers
     saddress[] providers;
-    
+
     // Mapping for each passenger and provider to the policy they hold
     mapping(saddress => Policy) policyHolder;
 
@@ -45,7 +44,7 @@ contract Fly is ReentrancyGuard {
 
     /*
      * Modifier to allow function calls by only passengers. 
-     */ 
+     */
     modifier onlyPassengers() {
         sbool isPassenger;
         for (uint256 i = 0; suint(i) < passengers.length; i++) {
@@ -53,14 +52,14 @@ contract Fly is ReentrancyGuard {
                 isPassenger = sbool(true);
                 break;
             }
-            require(isPassenger, "You're not one of the passengers");
-            _;
         }
+        require(isPassenger, "You're not one of the passengers");
+        _;
     }
 
     /*
      * Modifier to allow access by the admin. 
-     */ 
+     */
     modifier onlyAdmin() {
         require(saddress(msg.sender) == adminAddress, "You are not the admin");
         _;
@@ -76,9 +75,9 @@ contract Fly is ReentrancyGuard {
                 isProvider = sbool(true);
                 break;
             }
-            require(isProvider, "You're not one of the providers");
-            _;
         }
+        require(isProvider, "You're not one of the providers");
+        _;
     }
 
     constructor(saddress _adminAddress, saddress[] memory _passengers, saddress[] memory _providers) {
@@ -103,35 +102,32 @@ contract Fly is ReentrancyGuard {
         require(
             suint256(msg.value) == policyHolder[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch"
         );
+        require(suint256(msg.value) > suint(0), "Premium fee must be greater than 0");
         policyHolder[saddress(msg.sender)].flightId = flightId;
         policyHolder[saddress(msg.sender)].insuranceStatus = sbool(true);
         policiesConfirmed.push(policyHolder[saddress(msg.sender)]);
     }
 
     /*
-     * The policy with th least premium fee is listed to the passengers. 
+     * The policy with the least premium fee is listed to the passengers. 
      */
-    function listPolicy() external onlyPassengers returns(Policy memory policy) {
-        if (policyToDisplay.length > suint256(0)) {
-            
-            suint256 leastPremium = policyToDisplay[suint256(0)].insurancePremium;
-            suint256 index;
-            policy = policyToDisplay[suint256(0)];
-            for (uint i = 1; suint256(i) < policyToDisplay.length; i++) {
-                if (policyToDisplay[suint256(i)].insurancePremium <= leastPremium) {
-                    leastPremium = policyToDisplay[suint256(i)].insurancePremium;
-                    policy = policyToDisplay[suint256(i)];
-                    index = suint(i);
-                }
+    function listPolicy() external onlyPassengers returns (Policy memory policy) {
+        require(policyToDisplay.length > suint256(0), "No policies to display");
+        
+        suint256 leastPremium = policyToDisplay[suint256(0)].insurancePremium;
+        suint256 index;
+        policy = policyToDisplay[suint256(0)];
+        for (uint256 i = 1; suint256(i) < policyToDisplay.length; i++) {
+            if (policyToDisplay[suint256(i)].insurancePremium <= leastPremium) {
+                leastPremium = policyToDisplay[suint256(i)].insurancePremium;
+                policy = policyToDisplay[suint256(i)];
+                index = suint(i);
             }
-            
-            Policy memory temp = policyToDisplay[policyToDisplay.length - suint(1)];
-            temp = policyToDisplay[suint256(index)];
-            policyToDisplay[suint256(index)] = temp;
-            policyToDisplay.pop();
-
-        } else {
-            revert("No policies to display");
         }
-    } 
+
+        Policy memory temp = policyToDisplay[policyToDisplay.length - suint(1)];
+        temp = policyToDisplay[suint256(index)];
+        policyToDisplay[suint256(index)] = temp;
+        policyToDisplay.pop();
+    }
 }
