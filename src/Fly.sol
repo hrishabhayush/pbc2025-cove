@@ -33,10 +33,10 @@ contract Fly is ReentrancyGuard {
     // all the policies corresponding to that flight has been resolved
     mapping(suint256 => sbool) flightStatus;
 
-    modifier onlyPassenger() {
+    modifier onlyPassengers() {
         sbool isPassenger;
         for (uint i = 0; suint(i) < passengers.length; i++) {
-            if (saddress(msg.sender)==passengers[i]) {
+            if (saddress(msg.sender)==passengers[suint256(i)]) {
                 isPassenger = sbool(true);
                 break;
             }
@@ -53,7 +53,7 @@ contract Fly is ReentrancyGuard {
     modifier onlyProviders() {
         sbool isProvider;
         for (uint i = 0; suint(i) < providers.length; i++) {
-            if (saddress(msg.sender)==providers[i]) {
+            if (saddress(msg.sender)==providers[suint256(i)]) {
                 isProvider = sbool(true);
                 break;
             }
@@ -68,8 +68,14 @@ contract Fly is ReentrancyGuard {
         _providers = _providers;
     }
 
-    function setPremium(suint256 id, suint256 fee, sbool status) external onlyPassenger {
+    function setPremium(suint256 id, suint256 fee) external onlyProviders {
         policies[saddress(msg.sender)].flightId = id;
         policies[saddress(msg.sender)].insurancePremium = fee;
+    }
+
+    function buyPolicy(suint256 flightId) external payable onlyPassengers nonReentrant {
+        require(suint256(msg.value) == policies[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch");
+        policies[saddress(msg.sender)].flightId = flightId;
+        policies[saddress(msg.sender)].insuranceStatus = sbool(true);
     }
  }
