@@ -6,7 +6,6 @@ import "lib/solmate/src/utils/ReentrancyGuard.sol";
 import "./SRC20.sol";
 
 contract Fly is ReentrancyGuard {
-    
     // Add some stypes here
 
     SRC20 public flyAsset;
@@ -23,20 +22,20 @@ contract Fly is ReentrancyGuard {
         suint256 insurancePremium;
         sbool insuranceStatus;
         suint256 flightPrice;
-    } 
+    }
 
     saddress[] passengers;
     saddress[] providers;
     mapping(saddress => Policy) policies; // Each passenger what policy they hold
 
-    // Corresponding to each flight we maintain a boolean, that tells us whether 
+    // Corresponding to each flight we maintain a boolean, that tells us whether
     // all the policies corresponding to that flight has been resolved
     mapping(suint256 => sbool) flightStatus;
 
     modifier onlyPassengers() {
         sbool isPassenger;
-        for (uint i = 0; suint(i) < passengers.length; i++) {
-            if (saddress(msg.sender)==passengers[suint256(i)]) {
+        for (uint256 i = 0; suint(i) < passengers.length; i++) {
+            if (saddress(msg.sender) == passengers[suint256(i)]) {
                 isPassenger = sbool(true);
                 break;
             }
@@ -46,14 +45,14 @@ contract Fly is ReentrancyGuard {
     }
 
     modifier onlyAdmin() {
-        require(saddress(msg.sender)==adminAddress, "You are not the admin");
+        require(saddress(msg.sender) == adminAddress, "You are not the admin");
         _;
     }
 
     modifier onlyProviders() {
         sbool isProvider;
-        for (uint i = 0; suint(i) < providers.length; i++) {
-            if (saddress(msg.sender)==providers[suint256(i)]) {
+        for (uint256 i = 0; suint(i) < providers.length; i++) {
+            if (saddress(msg.sender) == providers[suint256(i)]) {
                 isProvider = sbool(true);
                 break;
             }
@@ -74,8 +73,10 @@ contract Fly is ReentrancyGuard {
     }
 
     function buyPolicy(suint256 flightId) external payable onlyPassengers nonReentrant {
-        require(suint256(msg.value) == policies[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch");
+        require(
+            suint256(msg.value) == policies[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch"
+        );
         policies[saddress(msg.sender)].flightId = flightId;
         policies[saddress(msg.sender)].insuranceStatus = sbool(true);
     }
- }
+}
