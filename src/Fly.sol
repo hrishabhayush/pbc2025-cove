@@ -15,8 +15,9 @@ contract Fly is ReentrancyGuard {
     // Fixed point arithmetic unit
     suint256 wad;
 
-    saddress provider;
-
+    /*
+     * Flight insurance policy
+     */
     struct Policy {
         suint256 flightId;
         suint256 insurancePremium;
@@ -24,17 +25,27 @@ contract Fly is ReentrancyGuard {
         suint256 flightPrice;
     }
 
+    
     saddress[] passengers;
+    // Providers are insurers that will be insuring the passengers
     saddress[] providers;
     
-    mapping(saddress => Policy) policyHolder; // Each passenger what policy they hold
+    // Mapping for each passenger and provider to the policy they hold
+    mapping(saddress => Policy) policyHolder;
+
+    // Policies that are confirmed by the user and they have already bought
     Policy[] policiesConfirmed;
+
+    // Policies that are yet to be bought the passengers
     Policy[] policyToDisplay;
 
     // Corresponding to each flight we maintain a boolean, that tells us whether
     // all the policies corresponding to that flight has been resolved
     mapping(suint256 => sbool) flightStatus;
 
+    /*
+     * Modifier to allow function calls by only passengers. 
+     */ 
     modifier onlyPassengers() {
         sbool isPassenger;
         for (uint256 i = 0; suint(i) < passengers.length; i++) {
@@ -47,11 +58,17 @@ contract Fly is ReentrancyGuard {
         }
     }
 
+    /*
+     * Modifier to allow access by the admin. 
+     */ 
     modifier onlyAdmin() {
         require(saddress(msg.sender) == adminAddress, "You are not the admin");
         _;
     }
 
+    /* 
+     * Modifier to allow function calls by only providers/insurers. 
+     */
     modifier onlyProviders() {
         sbool isProvider;
         for (uint256 i = 0; suint(i) < providers.length; i++) {
@@ -70,12 +87,18 @@ contract Fly is ReentrancyGuard {
         _providers = _providers;
     }
 
+    /* 
+     * Providers are allowed to set the premium fee for policy. 
+     */
     function setPremium(suint256 id, suint256 fee) external onlyProviders {
         policyHolder[saddress(msg.sender)].flightId = id;
         policyHolder[saddress(msg.sender)].insurancePremium = fee;
         policyToDisplay.push(policyHolder[saddress(msg.sender)]);
     }
 
+    /*
+     * Only passengers are allowed to buy the policy. 
+     */
     function buyPolicy(suint256 flightId) external payable onlyPassengers nonReentrant {
         require(
             suint256(msg.value) == policyHolder[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch"
@@ -85,6 +108,9 @@ contract Fly is ReentrancyGuard {
         policiesConfirmed.push(policyHolder[saddress(msg.sender)]);
     }
 
+    /*
+     * The policy with th least premium fee is listed to the passengers. 
+     */
     function listPolicy() external onlyPassengers returns(Policy memory policy) {
         if (policyToDisplay.length > suint256(0)) {
             
