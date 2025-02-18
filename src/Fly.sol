@@ -15,45 +15,47 @@ contract Fly is ReentrancyGuard {
     // Fixed point arithmetic unit
     suint256 wad;
 
+    // Maintain a policy id counter
+    suint256 nextPolicyId;
+
     /*
-     * Flight insurance policy
+     * Flight insurance policy provided by an insurer/provider. 
      */
     struct Policy {
+        suint256 policyId;
         suint256 flightId;
-        suint256 insurancePremium;
-        sbool insuranceStatus;
-        suint256 flightPrice;
+        suint256 premium;
+        suint256 coverage;
+        saddress provider;
+        sbool isActive;
+        sbool isPurchased;
     }
 
-    saddress[] passengers;
-    // Providers are insurers that will be insuring the passengers
-    saddress[] providers;
+    // With a mapping ensure whether an address is passenger or not
+    mapping(saddress => sbool) isPassenger;
+    // With a mapping ensure whether an address is provider or not
+    mapping(saddress => sbool) isProvider;
 
-    // Mapping for each passenger and provider to the policy they hold
-    mapping(saddress => Policy) policyHolder;
+    // Mapping each policy id to their policies
+    mapping(suint256 => Policy) allPolicies;
 
-    // Policies that are confirmed by the user and they have already bought
-    Policy[] policiesConfirmed;
+    // Map flightId to each corresponding policy with the same flightId
+    mapping(suint256 => suint256[]) flightPolicies;
 
-    // Policies that are yet to be bought the passengers
-    Policy[] policyToDisplay;
+    // Map each provider to their created policies
+    mapping(saddress => suint256[]) providerPolicies;
+    
+    // Map each passenger to their purchased policies
+    mapping(saddress => suint256[]) passengerPolicies; 
 
-    // Corresponding to each flight we maintain a boolean, that tells us whether
-    // all the policies corresponding to that flight has been resolved
-    mapping(suint256 => sbool) flightStatus;
+    // To check if each flight id resolved
+    mapping(suint256 => sbool) flightResolutions;
 
     /*
-     * Modifier to allow function calls by only passengers. 
+     * Modifier to allow function call by only passenger. 
      */
-    modifier onlyPassengers() {
-        sbool isPassenger;
-        for (uint256 i = 0; suint(i) < passengers.length; i++) {
-            if (saddress(msg.sender) == passengers[suint256(i)]) {
-                isPassenger = sbool(true);
-                break;
-            }
-        }
-        require(isPassenger, "You're not one of the passengers");
+    modifier onlyPassenger() {
+        require(isPassenger[saddress(msg.sender)], "Not a passenger");
         _;
     }
 
@@ -66,68 +68,104 @@ contract Fly is ReentrancyGuard {
     }
 
     /* 
-     * Modifier to allow function calls by only providers/insurers. 
+     * Modifier to allow function calls by only provider/insurer. 
      */
-    modifier onlyProviders() {
-        sbool isProvider;
-        for (uint256 i = 0; suint(i) < providers.length; i++) {
-            if (saddress(msg.sender) == providers[suint256(i)]) {
-                isProvider = sbool(true);
-                break;
-            }
-        }
-        require(isProvider, "You're not one of the providers");
+    modifier onlyProvider() {
+        require(isProvider[saddress(msg.sender)], "Not a provider");
         _;
     }
 
-    constructor(saddress _adminAddress, saddress[] memory _passengers, saddress[] memory _providers) {
+    /*//////////////////////////////////////////////////////////////
+                             CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
+    constructor(
+        saddress _adminAddress, 
+        saddress[] memory _passengers, 
+        saddress[] memory _providers, 
+        SRC20 _flyAsset) {
         adminAddress = _adminAddress;
-        passengers = _passengers;
-        _providers = _providers;
+        for (uint256 i = 0; suint256(i) < _passengers.length; i++) {
+            isPassenger[_passengers[suint256(i)]] = sbool(true);
+        }
+
+        for (uint256 i = 0; suint256(i) < _providers.length; i++) {
+            isProvider[_providers[suint256(i)]] = sbool(true);
+        }
+
+        flyAsset = _flyAsset;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            PROVIDER
+    //////////////////////////////////////////////////////////////*/
+    /*
+     * Provider creates a policy.
+     */
+    function createPolicy(suint256 flightId,
+        suint256 premium,
+        suint256 coverage
+    ) external onlyProvider {
+        nextPolicyId += suint(1);
+
+        allPolicies[nextPolicyId] = Policy(
+            nextPolicyId, 
+            flightId,
+            premium,
+            coverage,
+            saddress(msg.sender),
+            sbool(true),
+            sbool(false)
+        );
+
+        providerPolicies[saddress(msg.sender)].push(nextPolicyId);
+        _addToFlightPolicies(flightId, nextPolicyId);
+
+    }
     /* 
      * Providers are allowed to set the premium fee for policy. 
      */
-    function setPremium(suint256 id, suint256 fee) external onlyProviders {
-        policyHolder[saddress(msg.sender)].flightId = id;
-        policyHolder[saddress(msg.sender)].insurancePremium = fee;
-        policyToDisplay.push(policyHolder[saddress(msg.sender)]);
-    }
-
-    /*
-     * Only passengers are allowed to buy the policy. 
-     */
-    function buyPolicy(suint256 flightId) external payable onlyPassengers nonReentrant {
-        require(
-            suint256(msg.value) == policyHolder[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch"
-        );
-        require(suint256(msg.value) > suint(0), "Premium fee must be greater than 0");
-        policyHolder[saddress(msg.sender)].flightId = flightId;
-        policyHolder[saddress(msg.sender)].insuranceStatus = sbool(true);
-        policiesConfirmed.push(policyHolder[saddress(msg.sender)]);
-    }
-
-    /*
-     * The policy with the least premium fee is listed to the passengers. 
-     */
-    function listPolicy() external onlyPassengers returns (Policy memory policy) {
-        require(policyToDisplay.length > suint256(0), "No policies to display");
+    function updatePremium(suint256 policyId, suint256 newPremium) external onlyProvider {
+        Policy storage policy = allPolicies[policyId];
+        require(policy.provider == saddress(msg.sender), "Not your policy");
+        require(!policy.isPurchased, "Policy already purchased");
         
-        suint256 leastPremium = policyToDisplay[suint256(0)].insurancePremium;
-        suint256 index;
-        policy = policyToDisplay[suint256(0)];
-        for (uint256 i = 1; suint256(i) < policyToDisplay.length; i++) {
-            if (policyToDisplay[suint256(i)].insurancePremium <= leastPremium) {
-                leastPremium = policyToDisplay[suint256(i)].insurancePremium;
-                policy = policyToDisplay[suint256(i)];
-                index = suint(i);
+        policy.premium = newPremium;
+        _sortFlightPolicies(policy.flightId);
+    }
+    
+
+    /*
+     * Helper functions
+     */
+    function _addToFlightPolicies(suint256 flightId, suint256 policyId) internal {
+        flightPolicies[flightId].push(policyId);
+        _sortFlightPolicies(flightId);
+    }
+
+    function _removeFromFlightPolicies(suint256 flightId, suint256 policyId) internal {
+        suint256[] storage policies = flightPolicies[flightId];
+        for (uint256 i = 0; suint256(i) < policies.length; i++) {
+            if (policies[suint256(i)] == policyId) {
+                policies[suint256(i)] = policies[suint256(policies.length - suint256(1))];
+                policies.pop();
+                break;
             }
         }
+        _sortFlightPolicies(flightId);
+    }
 
-        Policy memory temp = policyToDisplay[policyToDisplay.length - suint(1)];
-        temp = policyToDisplay[suint256(index)];
-        policyToDisplay[suint256(index)] = temp;
-        policyToDisplay.pop();
+    function _sortFlightPolicies(suint256 flightId) internal {
+        suint256[] storage policies = flightPolicies[flightId];
+        for (uint256 i = 1; suint256(i) < policies.length; i++) {
+            uint256 j = i;
+            while (sbool(j > 0) && _isLessExpensive(policies[suint256(j)], policies[suint256(j-1)])) {
+                (policies[suint256(j-1)], policies[suint256(j)]) = (policies[suint256(j)], policies[suint256(j-1)]);
+                j--;
+            }
+        }
+    }
+
+    function _isLessExpensive(suint256 a, suint256 b) internal view returns (sbool) {
+        return sbool(allPolicies[a].premium < allPolicies[b].premium);
     }
 }
