@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Walnut} from "../src/Walnut.sol";
+import {Walnut} from "../src/Fly.sol";
 
 contract WalnutTest is Test {
     Walnut public walnut;
