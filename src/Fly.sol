@@ -73,6 +73,7 @@ contract Fly is ReentrancyGuard {
     function setPremium(suint256 id, suint256 fee) external onlyProviders {
         policyHolder[saddress(msg.sender)].flightId = id;
         policyHolder[saddress(msg.sender)].insurancePremium = fee;
+        policyToDisplay.push(policyHolder[saddress(msg.sender)]);
     }
 
     function buyPolicy(suint256 flightId) external payable onlyPassengers nonReentrant {
@@ -86,7 +87,21 @@ contract Fly is ReentrancyGuard {
 
     function listPolicy() external view onlyPassengers returns(Policy memory policy) {
         if (policyToDisplay.length > suint256(0)) {
+            
+            suint256 leastPremium = policyToDisplay[suint256(0)].insurancePremium;
+            suint256 index;
             policy = policyToDisplay[suint256(0)];
+            for (uint i = 1; suint256(i) < policyToDisplay.length; i++) {
+                if (policyToDisplay[i].insurancePremium <= leastPremium) {
+                    leastPremium = policyToDisplay[suint256(i)].insurancePremium;
+                    policy = policyToDisplay[suint256(i)];
+                    index = suint(i);
+                }
+            }
+
+            policyToDisplay[index] = policyToDisplay[policyToDisplay.length - suint(1)];
+            policyToDisplay.pop();
+
         } else {
             revert("No policies to display");
         }
