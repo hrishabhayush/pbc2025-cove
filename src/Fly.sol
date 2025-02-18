@@ -81,13 +81,14 @@ contract Fly is ReentrancyGuard {
         );
         policyHolder[saddress(msg.sender)].flightId = flightId;
         policyHolder[saddress(msg.sender)].insuranceStatus = sbool(true);
+        policiesConfirmed.push(policyHolder[saddress(msg.sender)]);
     }
 
-    function listPolicy() external view returns(Policy memory policy) {
+    function listPolicy() external view onlyPassengers returns(Policy memory policy) {
         if (policyToDisplay.length > suint256(0)) {
             policy = policyToDisplay[suint256(0)];
         } else {
             revert("No policies to display");
         }
-    }
+    } 
 }
