@@ -133,6 +133,41 @@ contract Fly is ReentrancyGuard {
         _sortFlightPolicies(policy.flightId);
     }
     
+    /*//////////////////////////////////////////////////////////////
+                            PASSENGER
+    //////////////////////////////////////////////////////////////*/
+    function getCheapestPolicy(suint256 flightId) private view returns(suint256) {
+        suint256[] storage policies = flightPolicies[flightId];
+        require(policies.length > suint256(0), "No policies available");
+        
+        suint256 cheapestId = policies[suint256(0)];
+        suint256 lowestPremium = allPolicies[cheapestId].premium;
+
+        for (uint256 i = 1; suint256(i) < policies.length; i++) {
+            Policy storage current = allPolicies[policies[suint256(i)]];
+            if (sbool(current.premium < lowestPremium) && !current.isPurchased) {
+                cheapestId = policies[suint256(i)];
+                lowestPremium = current.premium;
+            }
+        }
+        return cheapestId;
+    }
+    
+    function buyPolicy(suint256 flightId) external onlyPassenger nonReentrant {
+        suint256 policyId = getCheapestPolicy(flightId);
+
+        Policy storage policy = allPolicies[policyId];
+        require(policy.isActive, "Policy is not active");
+        require(!policy.isPurchased, "Policy is already purchased");
+
+        // Transfer premium from passenger to contract
+        flyAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
+        
+        // Mark policy as purchased
+        policy.isPurchased = sbool(true);
+        passengerPolicies[saddress(msg.sender)].push(policyId);
+        _removeFromFlightPolicies(flightId, policyId);
+    }
 
     /*
      * Helper functions
