@@ -98,8 +98,10 @@ contract Fly is ReentrancyGuard {
                     index = suint(i);
                 }
             }
-
-            policyToDisplay[suint256(index)] = policyToDisplay[policyToDisplay.length - suint(1)];
+            
+            Policy memory temp = policyToDisplay[policyToDisplay.length - suint(1)];
+            temp = policyToDisplay[suint256(index)];
+            policyToDisplay[suint256(index)] = temp;
             policyToDisplay.pop();
 
         } else {
