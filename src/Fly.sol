@@ -26,7 +26,10 @@ contract Fly is ReentrancyGuard {
 
     saddress[] passengers;
     saddress[] providers;
-    mapping(saddress => Policy) policies; // Each passenger what policy they hold
+    
+    mapping(saddress => Policy) policyHolder; // Each passenger what policy they hold
+    Policy[] policiesConfirmed;
+    Policy[] policyToDisplay;
 
     // Corresponding to each flight we maintain a boolean, that tells us whether
     // all the policies corresponding to that flight has been resolved
@@ -68,15 +71,23 @@ contract Fly is ReentrancyGuard {
     }
 
     function setPremium(suint256 id, suint256 fee) external onlyProviders {
-        policies[saddress(msg.sender)].flightId = id;
-        policies[saddress(msg.sender)].insurancePremium = fee;
+        policyHolder[saddress(msg.sender)].flightId = id;
+        policyHolder[saddress(msg.sender)].insurancePremium = fee;
     }
 
     function buyPolicy(suint256 flightId) external payable onlyPassengers nonReentrant {
         require(
-            suint256(msg.value) == policies[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch"
+            suint256(msg.value) == policyHolder[saddress(msg.sender)].insurancePremium, "Insurance premium fee mismatch"
         );
-        policies[saddress(msg.sender)].flightId = flightId;
-        policies[saddress(msg.sender)].insuranceStatus = sbool(true);
+        policyHolder[saddress(msg.sender)].flightId = flightId;
+        policyHolder[saddress(msg.sender)].insuranceStatus = sbool(true);
+    }
+
+    function listPolicy() external view returns(Policy memory policy) {
+        if (policyToDisplay.length > suint256(0)) {
+            policy = policyToDisplay[suint256(0)];
+        } else {
+            revert("No policies to display");
+        }
     }
 }
