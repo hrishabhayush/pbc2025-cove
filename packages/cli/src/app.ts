@@ -171,7 +171,7 @@ interface AppConfig {
     async claimCoverageBack(providerName: string, policyId: number) {
       console.log(`- ${providerName} claiming their coverage back for ${policyId}`)
       const contract = this.getProviderName(providerName)
-      const status = await contract.read.claimCoverageBack([policyId])
+      const status = await contract.write.claimCoverageBack([policyId])
       console.log(`Policy status: ${status}`)
     }
   }
