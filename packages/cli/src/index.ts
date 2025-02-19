@@ -31,31 +31,38 @@ async function main() {
   const chain =
     process.env.CHAIN_ID === sanvil.id.toString() ? sanvil : seismicDevnet
 
-const passengers = [
-    { name: 'Alice', privateKey: process.env.ALICE_PRIVKEY! },
-    { name: 'Bob', privateKey: process.env.BOB_PRIVKEY! },
-    { name: 'Chad', privateKey: process.env.CHAD_PRIVKEY! },
-    { name: 'Dave', privateKey: process.env.DAVE_PRIVKEY! },
-    { name: 'Eve', privateKey: process.env.EVE_PRIVKEY! },
-    { name: 'Frank', privateKey: process.env.FRANK_PRIVKEY! },
-    { name: 'Grace', privateKey: process.env.GRACE_PRIVKEY! },
-    { name: 'Heidi', privateKey: process.env.HEIDI_PRIVKEY! }
-]
+  const passengers = [
+      { name: 'Alice', privateKey: process.env.ALICE_PRIVKEY! },
+      { name: 'Bob', privateKey: process.env.BOB_PRIVKEY! },
+      { name: 'Chad', privateKey: process.env.CHAD_PRIVKEY! },
+      { name: 'Dave', privateKey: process.env.DAVE_PRIVKEY! },
+      { name: 'Eve', privateKey: process.env.EVE_PRIVKEY! },
+      { name: 'Frank', privateKey: process.env.FRANK_PRIVKEY! },
+      { name: 'Grace', privateKey: process.env.GRACE_PRIVKEY! },
+      { name: 'Heidi', privateKey: process.env.HEIDI_PRIVKEY! }
+  ]
 
-const providers = [
-    { name: 'Aaron', privateKey: process.env.AARON_PRIVKEY! },
-    { name: 'Bella', privateKey: process.env.BELLA_PRIVKEY! },
-    { name: 'Charlie', privateKey: process.env.CHARLIE_PRIVKEY! },
-    { name: 'Diana', privateKey: process.env.DIANA_PRIVKEY! },
-    { name: 'Ethan', privateKey: process.env.ETHAN_PRIVKEY! },
-    { name: 'Fiona', privateKey: process.env.FIONA_PRIVKEY! }
-]
+  const providers = [
+      { name: 'Aaron', privateKey: process.env.AARON_PRIVKEY! },
+      { name: 'Bella', privateKey: process.env.BELLA_PRIVKEY! },
+      { name: 'Charlie', privateKey: process.env.CHARLIE_PRIVKEY! },
+      { name: 'Diana', privateKey: process.env.DIANA_PRIVKEY! },
+      { name: 'Ethan', privateKey: process.env.ETHAN_PRIVKEY! },
+      { name: 'Fiona', privateKey: process.env.FIONA_PRIVKEY! }
+  ]
 
-const flights = [
-    { flightId: 1, departure: 'NYC', arrival: 'LAX' },
-    { flightId: 2, departure: 'SFO', arrival: 'SEA' },
-    { flightId: 3, departure: 'MIA', arrival: 'ORD' }
-]
+  const flights = [
+      { flightId: 1, departure: 'NYC', arrival: 'LAX' },
+      { flightId: 2, departure: 'SFO', arrival: 'SEA' },
+      { flightId: 3, departure: 'MIA', arrival: 'ORD' }
+  ]
+
+  // Initialize with 3 flights from the flights array
+  const simulationFlights = flights.map(f => ({
+    id: f.flightId,
+    route: `${f.departure}-${f.arrival}`,
+    policies: new Map<number, string>() // policyId -> provider
+  }));
 
   const app = new App({
     providers,
@@ -71,6 +78,7 @@ const flights = [
   })
 
   await app.init()
+
 
   // Simulating interactions between providers and passengers
   console.log('=== Creating policies ===')
