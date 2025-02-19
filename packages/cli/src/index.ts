@@ -57,13 +57,6 @@ async function main() {
       { flightId: 3, departure: 'MIA', arrival: 'ORD' }
   ]
 
-  // Initialize with 3 flights from the flights array
-  const simulationFlights = flights.map(f => ({
-    id: f.flightId,
-    route: `${f.departure}-${f.arrival}`,
-    policies: new Map<number, string>() // policyId -> provider
-  }));
-
   const app = new App({
     providers,
     passengers,
@@ -82,34 +75,29 @@ async function main() {
 
   // Simulating interactions between providers and passengers
   console.log('=== Creating policies ===')
-  let policyCounter = 1;
-  for (const flight of simulationFlights) {
-     await app.createPolicy()
-  }
-  
+  app.createPolicy(providers[0].name, 1, flights[0].flightId, BigInt(1e16), BigInt(1e20))
+  app.createPolicy(providers[1].name, 2, flights[2].flightId, BigInt(1e17), BigInt(1e18))
+  app.createPolicy(providers[2].name, 3, flights[1].flightId, BigInt(1e19), BigInt(1e20))
+  app.createPolicy(providers[3].name, 4, flights[1].flightId, BigInt(1e18), BigInt(1e20))
+  app.createPolicy(providers[4].name, 5, flights[0].flightId, BigInt(1e19), BigInt(1e20))
+  app.createPolicy(providers[5].name, 6, flights[0].flightId, BigInt(1e17), BigInt(1e20))
 
-  // Alice looks at the number in round 1, should be 7
-  await app.look('Alice')
+  console.log('==== Buying policies ===')
+  // Policy 1 has the lowest premium for flight with id 1
+  app.buyPolicy(passengers[0].name, flights[0].flightId)
 
-  console.log('=== Round 2 ===')
-  await app.reset('Bob')
-  await app.hit('Bob')
-  await app.shake('Bob', 1)
-  await app.hit('Bob')
-  await app.shake('Bob', 2)
-  await app.hit('Bob')
+  // Now, if another user that's on the same flight tries to buy this policy would give an error
+  console.error(app.buyPolicy(passengers[1].name, flights[0].flightId))
 
-  // Bob looks at the number in round 2, should be 3
-  await app.look('Bob')
+  // As there is only one policy the policy with id 2 will be sold
+  app.buyPolicy(passengers[2].name, flights[2].flightId) 
 
-  // Alice tries to look in round 2, should fail by reverting
-  try {
-    await app.look('Alice')
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error'
-    console.error('Alice could not call look() in round 2:', errorMessage)
-  }
+  // For a passenger on flight with id 2, policy 4 will be sold
+  app.buyPolicy(passengers[3].name, flights[1].flightId) // Policy 3
+  app.buyPolicy(passengers[4].name, flights[1].flightId) // Policy 4
+
+  // Error if someone now tries to call the buyPolicy function when there is no flight policy available
+  console.error(app.buyPolicy(passengers[5].name, flights[1].flightId))
 }
 
 main()
