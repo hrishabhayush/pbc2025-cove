@@ -105,7 +105,7 @@ contract Fly is ReentrancyGuard {
         suint256 premium,
         suint256 coverage
     ) external onlyProvider {
-        Policy policy = Policy(
+        Policy memory policy = Policy(
             premium, 
             coverage, 
             saddress(msg.sender),
@@ -116,18 +116,31 @@ contract Fly is ReentrancyGuard {
 
         policies[policyId] = policy;
 
-        _addToFlightPolicies(policies, flightPolicies[flightId], policyId, premium);        
+        _addToFlightPolicies(policies, flightId, policyId, premium);        
     }
+    
     /* 
      * Providers are allowed to set the premium fee for policy. 
      */
-    function updatePremium(suint256 policyId, suint256 newPremium) external onlyProvider {
+    function updatePremium(suint256 policyId, suint256 flightId, suint256 newPremium) external onlyProvider {
         Policy storage policy = policies[policyId];
+
         require(policy.provider == saddress(msg.sender), "Not your policy");
         require(!policy.isPurchased, "Policy already purchased");
         
-        policy.premium = newPremium;
-        _sortFlightPolicies(policy.flightId);
+        uint index = 0;
+        for (uint i = 0; suint(i) < flightPolicies[flightId].length; i++) {
+            if (flightPolicies[flightId][suint256(i)] == policyId) {
+                index = i;
+                break;
+            }
+        }
+
+        for (uint i = index; suint(i + 1) < flightPolicies[flightId].length; i++) {
+            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][suint256(i+1)];
+            flightPolicies[flightId].pop();
+            _binaryInsertionSort(policies, flightPolicies[flightId], newPremium);
+        }
     }
     
     /*//////////////////////////////////////////////////////////////
@@ -170,7 +183,7 @@ contract Fly is ReentrancyGuard {
      * Helper functions
      */
     function _addToFlightPolicies (
-        mapping (suint256 => Policy) globalPolicies,
+        mapping (suint256 => Policy) storage globalPolicies,
         suint256 flightId, 
         suint256 policyId, 
         suint256 premium
@@ -204,8 +217,8 @@ contract Fly is ReentrancyGuard {
      * Sorts the flightPolicies array in descending order.
      */
     function _binaryInsertionSort(
-        mapping (suint256 => Policy) globalPolicies, 
-        suint256[] list, 
+        mapping (suint256 => Policy) memory globalPolicies, 
+        suint256[] storage list, 
         suint256 premium
         ) internal returns(uint256) {
         uint256 left = list.length - 1;
