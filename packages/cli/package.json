@@ -1,15 +1,17 @@
 {
   "name": "cli",
-  "version": "1.0.0",
-  "main": "index.js",
-  "directories": {
-    "lib": "lib"
-  },
+  "license": "MIT License",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "bun run src/index.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "seismic-viem": "1.0.12",
+    "viem": "^2.22.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.6",
+    "typescript": "^5.6.3"
+  }
 }
