@@ -1,5 +1,6 @@
 # Encryptifly
 
+![encryptifly banner](assets/encryp.png)
 ## Problem
 Flight insurance claims take months to settle, and data leaks are rampant.
 
