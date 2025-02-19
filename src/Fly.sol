@@ -134,7 +134,7 @@ contract Fly is ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                             PASSENGER
     //////////////////////////////////////////////////////////////*/
-    function getCheapestPolicy(suint256 flightId) private view returns(suint256) {
+    function getCheapestPolicy(suint256 flightId) private view returns (suint256) {
         require(flightPolicies[flightId].length > suint256(0), "No policies available for this flight");
 
         suint256 cheapestId = _binarySearchCheapestPolicy(flightId);
@@ -158,7 +158,7 @@ contract Fly is ReentrancyGuard {
     }
 
     /*
-     * Helper functions
+     * Add the flight policy in sorted order in the flightPolicies array. 
      */
     function _addToFlightPolicies(
         mapping(suint256 => Policy) storage globalPolicies,
@@ -218,7 +218,10 @@ contract Fly is ReentrancyGuard {
         return left;
     }
 
-    function _binarySearchCheapestPolicy(suint256 flightId) private view returns(suint256) {
+    /*
+     * Binary search to find the cheapest policy that is available in the flightPolicies. 
+     */
+    function _binarySearchCheapestPolicy(suint256 flightId) private view returns (suint256) {
         suint256 left;
         suint256 right = flightPolicies[flightId].length - suint256(1);
         suint256 cheapestId = flightPolicies[flightId][left];
