@@ -117,16 +117,16 @@ interface AppConfig {
      * @param premium - Premium amount
      * @param coverage - Coverage that is the flight's price
      */
-    async underwritePolicy(
+    async createPolicy(
       providerName: string, 
-      policyId: bigint,
-      flightId: bigint, 
+      policyId: number,
+      flightId: number, 
       premium: bigint, 
       coverage: bigint
     ) {
       console.log(`- ${providerName} underwriting policy for ${flightId}`)
       const contract = this.getProviderName(providerName)
-      await contract.write.underwritePolicy([policyId, flightId, premium, coverage])
+      await contract.write.createPolicy([policyId, flightId, premium, coverage])
     }
 
     /**
@@ -134,7 +134,7 @@ interface AppConfig {
      * @param passengerName - Name of the passenger
      * @param flightId - Id of the flight for which passengers buys the policy
      */
-    async buyPolicy(passengerName: string, flightId: bigint) {
+    async buyPolicy(passengerName: string, flightId: number) {
       console.log(`- ${passengerName} buying policy for ${flightId}`)
       const contract = this.getPassengerName(passengerName)
       await contract.write.buyPolicy([flightId])
@@ -145,7 +145,7 @@ interface AppConfig {
      * @param passengerName - Name of the passenger that has the policy
      * @param flightId - Flight number with disruption
      */
-    async fileClaim(passengerName: string, policyId: bigint) {
+    async claimPayout(passengerName: string, policyId: number) {
       console.log(`- ${passengerName} filing claim for ${policyId}`)
       const contract = this.getPassengerName(passengerName)
       await contract.write.claimPayout([policyId])
@@ -157,7 +157,7 @@ interface AppConfig {
      * @param flightId - Id of the policy to be resolved
      * @param isResolved - whether policy has been resolved or not
      */
-    async resolveClaim(passengerName: string, flightId: bigint, isResolved: boolean) {
+    async resolvePolicy(passengerName: string, flightId: number, isResolved: boolean) {
       console.log(`- Resolving claim for flight ${flightId} (status: ${isResolved})`)
       const contract = this.getPassengerName(passengerName)
       await contract.write.resolvePolicy([flightId, isResolved])  
@@ -168,7 +168,7 @@ interface AppConfig {
      * @param providerName - Name of the provider/insurer
      * @param policyId - Id of the policy to be resolved
      */
-    async claimCoverage(providerName: string, policyId: bigint) {
+    async claimCoverageBack(providerName: string, policyId: number) {
       console.log(`- ${providerName} claiming their coverage back for ${policyId}`)
       const contract = this.getProviderName(providerName)
       const status = await contract.read.claimCoverageBack([policyId])

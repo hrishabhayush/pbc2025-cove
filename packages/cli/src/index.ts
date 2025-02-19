@@ -52,9 +52,9 @@ const providers = [
 ]
 
 const flights = [
-    { flightNumber: 'FL123', departure: 'NYC', arrival: 'LAX' },
-    { flightNumber: 'FL456', departure: 'SFO', arrival: 'SEA' },
-    { flightNumber: 'FL789', departure: 'MIA', arrival: 'ORD' }
+    { flightId: 1, departure: 'NYC', arrival: 'LAX' },
+    { flightId: 2, departure: 'SFO', arrival: 'SEA' },
+    { flightId: 3, departure: 'MIA', arrival: 'ORD' }
 ]
 
   const app = new App({
@@ -72,9 +72,9 @@ const flights = [
 
   await app.init()
 
-  // Simulating multiplayer interactions
-  console.log('=== Round 1 ===')
-  await app.shake('Alice', 2)
+  // Simulating interactions between providers and passengers
+  console.log('=== Creating policies ===')
+  await app.underwritePolicy()
   await app.hit('Alice')
   await app.shake('Alice', 4)
   await app.hit('Alice')
