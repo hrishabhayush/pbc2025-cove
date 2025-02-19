@@ -8,7 +8,7 @@ contract FlyScript is Script {
     Fly public fly;
 
     function setUp() public {
-        saddress adminAddress = saddress(0x123);
+        saddress admin = saddress(0x14dC79964da2C08b23698B3D3cc7Ca32193d9955);
 
         saddress[] memory passengers = new address[](1);
         passengers[suint256(0)] = saddress(0x456);
@@ -16,7 +16,9 @@ contract FlyScript is Script {
         saddress[] memory providers = new address[](1);
         providers[suint256(0)] = saddress(0x789);
 
-        fly = new Fly(adminAddress, passengers, providers);
+        suint256 constant WAD = 1e18;
+
+        fly = new Fly(adminAddress, passengers, providers, );
     }
 
     function run() public {
