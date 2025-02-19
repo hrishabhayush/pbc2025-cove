@@ -176,19 +176,23 @@ contract Fly is ReentrancyGuard {
     }
 
     /*
-     * Removes .
+     * Removes a flightPolicy from the flightPolicies.
      */
     function _removeFromFlightPolicies(suint256 flightId, suint256 policyId) internal {
         // Get the policies corresponding to a flightId
-        suint256[] storage policies = flightPolicies[flightId];
-        for (uint256 i = 0; suint256(i) < policies.length; i++) {
-            if (policies[suint256(i)] == policyId) {
-                policies[suint256(i)] = policies[suint256(policies.length - suint256(1))];
-                policies.pop();
+        uint256 index = 0;
+        for (uint256 i = 0; suint256(i) < flightPolicies[flightId].length; i++) {
+            if (flightPolicies[flightId][suint256(i)] == policyId) {
+                index = i;
                 break;
             }
         }
-        _sortFlightPolicies(flightId);
+
+        // Remove the policy from the flightPolicies array
+        for (uint256 i = index; suint256(i) < flightPolicies[flightId].length - suint256(1); i++) {
+            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][suint256(i + 1)];
+        }
+        flightPolicies[flightId].pop();
     }
 
     /*
@@ -215,7 +219,7 @@ contract Fly is ReentrancyGuard {
     }
 
     function _binarySearchCheapestPolicy(suint256 flightId) private view returns(suint256) {
-        suint256 left = 0;
+        suint256 left;
         suint256 right = flightPolicies[flightId].length - suint256(1);
         suint256 cheapestId = flightPolicies[flightId][left];
         suint256 lowestPremium = policies[cheapestId].premium;
@@ -225,7 +229,7 @@ contract Fly is ReentrancyGuard {
             suint256 currentPolicyId = flightPolicies[flightId][mid];
             Policy storage currentPolicy = policies[currentPolicyId];
 
-            if (!currentPolicy.isPurchased && currentPolicy.premium < lowestPremium) {
+            if (!currentPolicy.isPurchased && sbool(currentPolicy.premium < lowestPremium)) {
                 cheapestId = currentPolicyId;
                 lowestPremium = currentPolicy.premium;
             }
@@ -238,12 +242,5 @@ contract Fly is ReentrancyGuard {
         }
 
         return cheapestId;
-    }
-
-    /*
-     * Check if the first quantity is lesser than the second quantity
-     */
-    function _isLessExpensive(suint256 a, suint256 b) internal view returns (sbool) {
-        return sbool(policies[a].premium < policies[b].premium);
     }
 }
