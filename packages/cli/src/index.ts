@@ -58,7 +58,8 @@ const flights = [
 ]
 
   const app = new App({
-    players,
+    providers,
+    passengers,
     wallet: {
       chain,
       rpcUrl: process.env.RPC_URL!,

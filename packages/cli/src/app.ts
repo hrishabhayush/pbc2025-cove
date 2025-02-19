@@ -38,7 +38,7 @@ interface AppConfig {
     private providerClients: Map<string, ShieldedWalletClient> = new Map()
     private providerContracts: Map<string, ShieldedContract> = new Map()
     private passengerClients: Map<string, ShieldedWalletClient> = new Map()
-    private passengerClients: Map<string, ShieldedContract> = new Map()
+    private passengerContracts: Map<string, ShieldedContract> = new Map()
 
   
     constructor(config: AppConfig) {
@@ -49,34 +49,77 @@ interface AppConfig {
      * Initialize the app.
      */
     async init() {
-      for (const player of this.config.players) {
+      for (const provider of this.config.providers) {
         const walletClient = await createShieldedWalletClient({
           chain: this.config.wallet.chain,
           transport: http(this.config.wallet.rpcUrl),
-          account: privateKeyToAccount(player.privateKey as `0x${string}`),
+          account: privateKeyToAccount(provider.privateKey as `0x${string}`),
         })
-        this.playerClients.set(player.name, walletClient)
+        this.providerClients.set(provider.name, walletClient)
   
         const contract = await getShieldedContractWithCheck(
           walletClient,
           this.config.contract.abi,
           this.config.contract.address
         )
-        this.playerContracts.set(player.name, contract)
+        this.providerContracts.set(provider.name, contract)
+      }
+
+      for (const passenger of this.config.passengers) {
+        const walletClient = await createShieldedWalletClient({
+          chain: this.config.wallet.chain,
+          transport: http(this.config.wallet.rpcUrl),
+          account: privateKeyToAccount(passenger.privateKey as `0x${string}`),
+        })
+        this.passengerClients.set(passenger.name, walletClient)
+        
+        const contract = await getShieldedContractWithCheck(
+          walletClient,
+          this.config.contract.abi,
+          this.config.contract.address
+        )
+        this.passengerContracts.set(passenger.name, contract)
       }
     }
-  
+    
+
     /**
      * Get the shielded contract for a player.
-     * @param playerName - The name of the player.
-     * @returns The shielded contract for the player.
+     * @param passengerName - The name of the passenger.
+     * @returns The shielded contract for the passenger.
      */
-    private getPlayerContract(playerName: string): ShieldedContract {
-      const contract = this.playerContracts.get(playerName)
+    private getPassengerName(passengerName: string): ShieldedContract {
+      const contract = this.passengerContracts.get(passengerName)
       if (!contract) {
-        throw new Error(`Shielded contract for player ${playerName} not found`)
+        throw new Error(`Shielded contract for passenger ${passengerName} not found`)
       }
       return contract
+    }
+
+    /**
+     * Get the shielded contract for a player.
+     * @param providerName - The name of the provider.
+     * @returns The shielded contract for the provider.
+     */
+    private getProviderName(providerName: string): ShieldedContract {
+      const contract = this.providerContracts.get(providerName)
+      if (!contract) {
+        throw new Error(`Shielded contract for passenger ${providerName} not found`)
+      }
+      return contract
+    }
+
+    /**
+     * Underwrite a new flight insurance policy
+     * @param insurerName - Name of the insurance provider
+     * @param flightNumber - Flight number being insured
+     * @param premium - Premium amount
+     * @param coverage - Maximum payout amount
+     */
+    async underwritePolicy(insurerName: string, flightNumber: string, premium: bigint, coverage: bigint) {
+      console.log(`- ${insurerName} underwriting policy for ${flightNumber}`)
+      const contract = this.getProviderName(insurerName)
+      await contract.write.underwritePolicy([flightNumber, premium, coverage])
     }
   
     /**
