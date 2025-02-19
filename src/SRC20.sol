@@ -115,7 +115,7 @@ abstract contract SRC20 is Context, ISRC20, ISRC20Metadata, IERC20Errors {
      * @dev See {ISRC20-allowance}.
      * Reverts if caller is neither the owner nor the spender to maintain privacy.
      */
-    function allowance(saddress owner, saddress spender) public virtual view returns (uint256) {
+    function allowance(saddress owner, saddress spender) public view virtual returns (uint256) {
         saddress caller = saddress(_msgSender());
         if (caller == owner || caller == spender) {
             return uint256(_allowances[saddress(owner)][saddress(spender)]);

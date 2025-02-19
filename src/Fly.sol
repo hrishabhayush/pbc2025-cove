@@ -43,9 +43,9 @@ contract Fly is ReentrancyGuard {
 
     // Map each provider to their created policies
     mapping(saddress => suint256[]) providerPolicies;
-    
+
     // Map each passenger to their purchased policies
-    mapping(saddress => suint256[]) passengerPolicies; 
+    mapping(saddress => suint256[]) passengerPolicies;
 
     // To check if each flight id resolved
     mapping(suint256 => sbool) flightResolutions;
@@ -77,11 +77,7 @@ contract Fly is ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                              CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
-    constructor(
-        saddress _adminAddress, 
-        saddress[] memory _passengers, 
-        saddress[] memory _providers, 
-        SRC20 _flyAsset) {
+    constructor(saddress _adminAddress, saddress[] memory _passengers, saddress[] memory _providers, SRC20 _flyAsset) {
         adminAddress = _adminAddress;
         for (uint256 i = 0; suint256(i) < _passengers.length; i++) {
             isPassenger[_passengers[suint256(i)]] = sbool(true);
@@ -100,25 +96,17 @@ contract Fly is ReentrancyGuard {
     /*
      * Provider creates a policy.
      */
-    function createPolicy(suint256 policyId,
-        suint256 flightId,
-        suint256 premium,
-        suint256 coverage
-    ) external onlyProvider {
-        Policy memory policy = Policy(
-            premium, 
-            coverage, 
-            saddress(msg.sender),
-            saddress(0),
-            sbool(false),
-            sbool(false)
-        );
+    function createPolicy(suint256 policyId, suint256 flightId, suint256 premium, suint256 coverage)
+        external
+        onlyProvider
+    {
+        Policy memory policy = Policy(premium, coverage, saddress(msg.sender), saddress(0), sbool(false), sbool(false));
 
         policies[policyId] = policy;
 
-        _addToFlightPolicies(policies, flightId, policyId, premium);        
+        _addToFlightPolicies(policies, flightId, policyId, premium);
     }
-    
+
     /* 
      * Providers are allowed to set the premium fee for policy. 
      */
@@ -127,29 +115,29 @@ contract Fly is ReentrancyGuard {
 
         require(policy.provider == saddress(msg.sender), "Not your policy");
         require(!policy.isPurchased, "Policy already purchased");
-        
-        uint index = 0;
-        for (uint i = 0; suint(i) < flightPolicies[flightId].length; i++) {
+
+        uint256 index = 0;
+        for (uint256 i = 0; suint(i) < flightPolicies[flightId].length; i++) {
             if (flightPolicies[flightId][suint256(i)] == policyId) {
                 index = i;
                 break;
             }
         }
 
-        for (uint i = index; suint(i + 1) < flightPolicies[flightId].length; i++) {
-            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][suint256(i+1)];
+        for (uint256 i = index; suint(i + 1) < flightPolicies[flightId].length; i++) {
+            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][suint256(i + 1)];
             flightPolicies[flightId].pop();
             _binaryInsertionSort(policies, flightPolicies[flightId], newPremium);
         }
     }
-    
+
     /*//////////////////////////////////////////////////////////////
                             PASSENGER
     //////////////////////////////////////////////////////////////*/
     // function getCheapestPolicy(suint256 flightId) private view returns(suint256) {
     //     suint256[] storage policies = flightPolicies[flightId];
     //     require(policies.length > suint256(0), "No policies available");
-        
+
     //     suint256 cheapestId = policies[suint256(0)];
     //     suint256 lowestPremium = policies[cheapestId].premium;
 
@@ -162,7 +150,7 @@ contract Fly is ReentrancyGuard {
     //     }
     //     return cheapestId;
     // }
-    
+
     // function buyPolicy(suint256 flightId) external onlyPassenger nonReentrant {
     //     suint256 policyId = getCheapestPolicy(flightId);
 
@@ -172,7 +160,7 @@ contract Fly is ReentrancyGuard {
 
     //     // Transfer premium from passenger to contract
     //     flyAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
-        
+
     //     // Mark policy as purchased
     //     policy.isPurchased = sbool(true);
     //     passengerPolicies[saddress(msg.sender)].push(policyId);
@@ -182,17 +170,17 @@ contract Fly is ReentrancyGuard {
     /*
      * Helper functions
      */
-    function _addToFlightPolicies (
-        mapping (suint256 => Policy) storage globalPolicies,
-        suint256 flightId, 
-        suint256 policyId, 
+    function _addToFlightPolicies(
+        mapping(suint256 => Policy) storage globalPolicies,
+        suint256 flightId,
+        suint256 policyId,
         suint256 premium
-        ) internal {
+    ) internal {
         flightPolicies[flightId].push(policyId);
         suint256 pos = _binaryInsertionSort(globalPolicies, flightPolicies[flightId], premium);
         flightPolicies[flightId].push(suint256(0));
         for (uint256 i = uint256(flightPolicies[flightId].length) - 1; suint256(i) >= pos; i--) {
-            flightPolicies[suint256(i+1)] = flightPolicies[suint256(i)];
+            flightPolicies[suint256(i + 1)] = flightPolicies[suint256(i)];
         }
         flightPolicies[pos] = flightPolicies[policyId];
     }
@@ -217,13 +205,13 @@ contract Fly is ReentrancyGuard {
      * Sorts the flightPolicies array in descending order.
      */
     function _binaryInsertionSort(
-        mapping (suint256 => Policy) storage globalPolicies, 
-        suint256[] storage list, 
+        mapping(suint256 => Policy) storage globalPolicies,
+        suint256[] storage list,
         suint256 premium
-        ) internal view returns(suint256) {
+    ) internal view returns (suint256) {
         suint256 left = list.length - suint256(1);
         suint256 right;
-        
+
         while (globalPolicies[left].premium > globalPolicies[right].premium) {
             suint256 mid = right + (left - right) / suint256(2);
 
@@ -238,7 +226,7 @@ contract Fly is ReentrancyGuard {
 
     /*
      * Check if the first quantity is lesser than the second quantity
-     */ 
+     */
     function _isLessExpensive(suint256 a, suint256 b) internal view returns (sbool) {
         return sbool(policies[a].premium < policies[b].premium);
     }

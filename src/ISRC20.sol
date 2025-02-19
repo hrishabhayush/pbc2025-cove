@@ -10,7 +10,7 @@ interface ISRC20 {
      * @dev Function to emit when tokens are moved from one account to another.
      * Must be overridden by implementing contracts to define event emission behavior.
      * Default implementation is no-op for privacy.
-     * 
+     *
      * @param from The sender address
      * @param to The recipient address
      * @param value The transfer amount
@@ -21,7 +21,7 @@ interface ISRC20 {
      * @dev Function to emit when allowance is modified.
      * Must be overridden by implementing contracts to define event emission behavior.
      * Default implementation is no-op for privacy.
-     * 
+     *
      * @param owner The token owner
      * @param spender The approved spender
      * @param value The approved amount
