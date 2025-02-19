@@ -41,9 +41,6 @@ contract Fly is ReentrancyGuard {
     // Map flightId to each corresponding policy with the same flightId
     mapping(suint256 => suint256[]) flightPolicies;
 
-    // Map each provider to their created policies
-    mapping(saddress => suint256[]) providerPolicies;
-
     // Map each passenger to their purchased policies
     mapping(saddress => suint256[]) passengerPolicies;
 
@@ -157,6 +154,19 @@ contract Fly is ReentrancyGuard {
         _removeFromFlightPolicies(flightId, policyId);
     }
 
+
+    /*//////////////////////////////////////////////////////////////
+                            RESOLUTION
+    //////////////////////////////////////////////////////////////*/
+    /*
+     * Admin resolves the policies for all the flights with the flightId
+     */
+    function resolvePolicy(suint256 flightId, sbool flightCancelled) external onlyAdmin {
+        flightResolutions[flightId] = flightCancelled;
+    }
+
+
+
     /*
      * Add the flight policy in sorted order in the flightPolicies array. 
      */
@@ -196,7 +206,8 @@ contract Fly is ReentrancyGuard {
     }
 
     /*
-     * Sorts the flightPolicies array in descending order.
+     * Sorts the flightPolicies array in descending order and inserts the policy to preserve that
+     * descending order.
      */
     function _binaryInsertionSort(
         mapping(suint256 => Policy) storage globalPolicies,
