@@ -23,7 +23,7 @@ $ sforge test
 
 ```bash
 $ source .env
-$ sforge script script/Fly.s.sol:FlyScript \
+$ sforge script script/Cove.s.sol:CoveScript \
       --rpc-url $RPC_URL \
       --broadcast
 ```

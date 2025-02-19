@@ -2,6 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/src/Test.sol";
-import {Fly} from "../src/Fly.sol";
+import {Cove} from "../src/Cove.sol";
 
-contract FlyTest is Test {}
+contract CoveTest is Test {}

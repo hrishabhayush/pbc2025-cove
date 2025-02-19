@@ -2,21 +2,17 @@
 pragma solidity ^0.8.13;
 
 import "solmate/src/utils/ReentrancyGuard.sol";
+import {CoveCoin} from "./CoveCoin.sol";
 
-import "./SRC20.sol";
-
-contract Fly is ReentrancyGuard {
+contract Cove is ReentrancyGuard {
     // Add some stypes here
 
-    SRC20 public flyAsset;
+    CoveCoin public coveAsset;
 
     saddress adminAddress;
 
     // Fixed point arithmetic unit
     suint256 wad;
-
-    // Maintain a policy id counter
-    suint256 nextPolicyId;
 
     /*
      * Flight insurance policy provided by an insurer/provider. 
@@ -74,7 +70,7 @@ contract Fly is ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                              CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
-    constructor(saddress _adminAddress, saddress[] memory _passengers, saddress[] memory _providers, SRC20 _flyAsset) {
+    constructor(saddress _adminAddress, saddress[] memory _passengers, saddress[] memory _providers, CoveCoin _coveAsset) {
         adminAddress = _adminAddress;
         for (uint256 i = 0; suint256(i) < _passengers.length; i++) {
             isPassenger[_passengers[suint256(i)]] = sbool(true);
@@ -84,7 +80,7 @@ contract Fly is ReentrancyGuard {
             isProvider[_providers[suint256(i)]] = sbool(true);
         }
 
-        flyAsset = _flyAsset;
+        coveAsset = _coveAsset;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -146,7 +142,7 @@ contract Fly is ReentrancyGuard {
         require(!policy.isPurchased, "Policy is already purchased");
 
         // Transfer premium from passenger to contract
-        flyAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
+        coveAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
 
         // Mark policy as purchased
         policy.isPurchased = sbool(true);
@@ -173,7 +169,7 @@ contract Fly is ReentrancyGuard {
         require(flightResolutions[policyId] == sbool(true), "No payout available");
 
         // Coverage transferred from provider to passenger
-        flyAsset.transferFrom(policy.provider, policy.buyer, policy.coverage);
+        coveAsset.transferFrom(policy.provider, policy.buyer, policy.coverage);
 
         // Policy will be inactive after payout
         policy.isActive = sbool(false);
@@ -188,7 +184,7 @@ contract Fly is ReentrancyGuard {
         require(flightResolutions[policyId] == sbool(false), "Flight was cancelled");
 
         // Coverage transferred back to provider
-        flyAsset.transferFrom(saddress(this), policy.provider, policy.coverage);
+        coveAsset.transferFrom(saddress(this), policy.provider, policy.coverage);
 
         // Policy will be inactive after coverage is returned
         policy.isActive = sbool(false);
