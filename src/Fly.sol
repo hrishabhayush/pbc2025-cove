@@ -189,12 +189,12 @@ contract Fly is ReentrancyGuard {
         suint256 premium
         ) internal {
         flightPolicies[flightId].push(policyId);
-        uint256 pos = _binaryInsertionSort(globalPolicies, flightPolicies[flightId], premium);
+        suint256 pos = _binaryInsertionSort(globalPolicies, flightPolicies[flightId], premium);
         flightPolicies[flightId].push(suint256(0));
-        for (uint i = policies.length - 1; i >= pos; i--) {
-            flightPolicies[i+1] = flightPolicies[i];
+        for (uint256 i = uint256(flightPolicies[flightId].length) - 1; suint256(i) >= pos; i--) {
+            flightPolicies[suint256(i+1)] = flightPolicies[suint256(i)];
         }
-        flightPolicies[pos] = policyId;
+        flightPolicies[pos] = flightPolicies[policyId];
     }
 
     /*
@@ -217,20 +217,20 @@ contract Fly is ReentrancyGuard {
      * Sorts the flightPolicies array in descending order.
      */
     function _binaryInsertionSort(
-        mapping (suint256 => Policy) memory globalPolicies, 
+        mapping (suint256 => Policy) storage globalPolicies, 
         suint256[] storage list, 
         suint256 premium
-        ) internal returns(uint256) {
-        uint256 left = list.length - 1;
-        uint256 right = 0;
+        ) internal view returns(suint256) {
+        suint256 left = list.length - suint256(1);
+        suint256 right;
         
         while (globalPolicies[left].premium > globalPolicies[right].premium) {
-            uint256 mid = right + (left - right) / 2;
+            suint256 mid = right + (left - right) / suint256(2);
 
             if (globalPolicies[mid].premium < premium) {
                 right = mid;
             } else {
-                left = mid + 1;
+                left = mid + suint256(1);
             }
         }
         return left;
