@@ -1,7 +1,0 @@
-# Encryptifly
-
-## Problem
-
-## Insight
-
-## Solution

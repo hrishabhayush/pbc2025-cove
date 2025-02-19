@@ -1,6 +1,23 @@
 {
+  "name": "flight-insurance",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrishabhayush/pbc2025-encryptifly.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hrishabhayush/pbc2025-encryptifly/issues"
+  },
+  "homepage": "https://github.com/hrishabhayush/pbc2025-encryptifly#readme",
+  "description": "",
   "dependencies": {
-    "@openzeppelin/contracts": "^5.2.0",
-    "solmate": "^6.8.0"
+    "typescript": "^5.7.3"
   }
 }
