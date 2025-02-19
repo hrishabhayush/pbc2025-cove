@@ -111,57 +111,68 @@ interface AppConfig {
 
     /**
      * Underwrite a new flight insurance policy
-     * @param insurerName - Name of the insurance provider
-     * @param flightNumber - Flight number being insured
+     * @param providerName - Name of the insurer/provider
+     * @param policyId - Id of the policy
+     * @param flightId - Id of the flight
      * @param premium - Premium amount
-     * @param coverage - Maximum payout amount
+     * @param coverage - Coverage that is the flight's price
      */
-    async underwritePolicy(insurerName: string, flightNumber: string, premium: bigint, coverage: bigint) {
-      console.log(`- ${insurerName} underwriting policy for ${flightNumber}`)
-      const contract = this.getProviderName(insurerName)
-      await contract.write.underwritePolicy([flightNumber, premium, coverage])
+    async underwritePolicy(
+      providerName: string, 
+      policyId: bigint,
+      flightId: bigint, 
+      premium: bigint, 
+      coverage: bigint
+    ) {
+      console.log(`- ${providerName} underwriting policy for ${flightId}`)
+      const contract = this.getProviderName(providerName)
+      await contract.write.underwritePolicy([policyId, flightId, premium, coverage])
     }
-  
+
     /**
-     * Reset the walnut.
-     * @param playerName - The name of the player.
+     * Buy a new flight insurance policy
+     * @param passengerName - Name of the passenger
+     * @param flightId - Id of the flight for which passengers buys the policy
      */
-    async reset(playerName: string) {
-      console.log(`- Player ${playerName} writing reset()`)
-      const contract = this.getPlayerContract(playerName)
-      await contract.write.reset([])
+    async buyPolicy(passengerName: string, flightId: bigint) {
+      console.log(`- ${passengerName} buying policy for ${flightId}`)
+      const contract = this.getPassengerName(passengerName)
+      await contract.write.buyPolicy([flightId])
     }
-  
+
     /**
-     * Shake the walnut.
-     * @param playerName - The name of the player.
-     * @param numShakes - The number of shakes.
+     * File a claim for flight disruption
+     * @param passengerName - Name of the passenger that has the policy
+     * @param flightId - Flight number with disruption
      */
-    async shake(playerName: string, numShakes: number) {
-      console.log(`- Player ${playerName} writing shake()`)
-      const contract = this.getPlayerContract(playerName)
-      await contract.write.shake([numShakes])
+    async fileClaim(passengerName: string, policyId: bigint) {
+      console.log(`- ${passengerName} filing claim for ${policyId}`)
+      const contract = this.getPassengerName(passengerName)
+      await contract.write.claimPayout([policyId])
     }
-  
+
     /**
-     * Hit the walnut.
-     * @param playerName - The name of the player.
+     * Process the insurance claim
+     * @param passengerName - Name of the provider 
+     * @param flightId - Id of the policy to be resolved
+     * @param isResolved - whether policy has been resolved or not
      */
-    async hit(playerName: string) {
-      console.log(`- Player ${playerName} writing hit()`)
-      const contract = this.getPlayerContract(playerName)
-      await contract.write.hit([])
+    async resolveClaim(passengerName: string, flightId: bigint, isResolved: boolean) {
+      console.log(`- Resolving claim for flight ${flightId} (status: ${isResolved})`)
+      const contract = this.getPassengerName(passengerName)
+      await contract.write.resolvePolicy([flightId, isResolved])  
     }
-  
+
     /**
-     * Look at the walnut.
-     * @param playerName - The name of the player.
+     * Allow providers to claim their coverage back 
+     * @param providerName - Name of the provider/insurer
+     * @param policyId - Id of the policy to be resolved
      */
-    async look(playerName: string) {
-      console.log(`- Player ${playerName} reading look()`)
-      const contract = this.getPlayerContract(playerName)
-      const result = await contract.read.look()
-      console.log(`- Player ${playerName} sees number:`, result)
+    async claimCoverage(providerName: string, policyId: bigint) {
+      console.log(`- ${providerName} claiming their coverage back for ${policyId}`)
+      const contract = this.getProviderName(providerName)
+      const status = await contract.read.claimCoverageBack([policyId])
+      console.log(`Policy status: ${status}`)
     }
   }
   
