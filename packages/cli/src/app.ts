@@ -8,31 +8,38 @@ import {
   
   import { getShieldedContractWithCheck } from '../lib/utils'
   
-  /**
-   * The configuration for the app.
-   */
-  interface AppConfig {
-    players: Array<{
-      name: string
-      privateKey: string
+/**
+ * The configuration for the app.
+ */
+interface AppConfig {
+    providers: Array<{
+        name: string
+        privateKey: string
+    }>
+    passengers: Array<{
+        name: string
+        privateKey: string
     }>
     wallet: {
-      chain: Chain
-      rpcUrl: string
+        chain: Chain
+        rpcUrl: string
     }
     contract: {
-      abi: Abi
-      address: Address
+        abi: Abi
+        address: Address
     }
-  }
+}
   
   /**
    * The main application class.
    */
   export class App {
     private config: AppConfig
-    private playerClients: Map<string, ShieldedWalletClient> = new Map()
-    private playerContracts: Map<string, ShieldedContract> = new Map()
+    private providerClients: Map<string, ShieldedWalletClient> = new Map()
+    private providerContracts: Map<string, ShieldedContract> = new Map()
+    private passengerClients: Map<string, ShieldedWalletClient> = new Map()
+    private passengerClients: Map<string, ShieldedContract> = new Map()
+
   
     constructor(config: AppConfig) {
       this.config = config
