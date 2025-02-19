@@ -134,38 +134,28 @@ contract Fly is ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                             PASSENGER
     //////////////////////////////////////////////////////////////*/
-    // function getCheapestPolicy(suint256 flightId) private view returns(suint256) {
-    //     suint256[] storage policies = flightPolicies[flightId];
-    //     require(policies.length > suint256(0), "No policies available");
+    function getCheapestPolicy(suint256 flightId) private view returns(suint256) {
+        require(flightPolicies[flightId].length > suint256(0), "No policies available for this flight");
 
-    //     suint256 cheapestId = policies[suint256(0)];
-    //     suint256 lowestPremium = policies[cheapestId].premium;
+        suint256 cheapestId = _binarySearchCheapestPolicy(flightId);
+        return cheapestId;
+    }
 
-    //     for (uint256 i = 1; suint256(i) < policies.length; i++) {
-    //         Policy storage current = policies[policies[suint256(i)]];
-    //         if (sbool(current.premium < lowestPremium) && !current.isPurchased) {
-    //             cheapestId = policies[suint256(i)];
-    //             lowestPremium = current.premium;
-    //         }
-    //     }
-    //     return cheapestId;
-    // }
+    function buyPolicy(suint256 flightId) external onlyPassenger nonReentrant {
+        suint256 policyId = getCheapestPolicy(flightId);
 
-    // function buyPolicy(suint256 flightId) external onlyPassenger nonReentrant {
-    //     suint256 policyId = getCheapestPolicy(flightId);
+        Policy storage policy = policies[policyId];
+        require(policy.isActive, "Policy is not active");
+        require(!policy.isPurchased, "Policy is already purchased");
 
-    //     Policy storage policy = policies[policyId];
-    //     require(policy.isActive, "Policy is not active");
-    //     require(!policy.isPurchased, "Policy is already purchased");
+        // Transfer premium from passenger to contract
+        flyAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
 
-    //     // Transfer premium from passenger to contract
-    //     flyAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
-
-    //     // Mark policy as purchased
-    //     policy.isPurchased = sbool(true);
-    //     passengerPolicies[saddress(msg.sender)].push(policyId);
-    //     _removeFromFlightPolicies(flightId, policyId);
-    // }
+        // Mark policy as purchased
+        policy.isPurchased = sbool(true);
+        passengerPolicies[saddress(msg.sender)].push(policyId);
+        _removeFromFlightPolicies(flightId, policyId);
+    }
 
     /*
      * Helper functions
@@ -188,18 +178,18 @@ contract Fly is ReentrancyGuard {
     /*
      * Removes .
      */
-    // function _removeFromFlightPolicies(suint256 flightId, suint256 policyId) internal {
-    //     // Get the policies corresponding to a flightId
-    //     suint256[] storage policies = flightPolicies[flightId];
-    //     for (uint256 i = 0; suint256(i) < policies.length; i++) {
-    //         if (policies[suint256(i)] == policyId) {
-    //             policies[suint256(i)] = policies[suint256(policies.length - suint256(1))];
-    //             policies.pop();
-    //             break;
-    //         }
-    //     }
-    //     _sortFlightPolicies(flightId);
-    // }
+    function _removeFromFlightPolicies(suint256 flightId, suint256 policyId) internal {
+        // Get the policies corresponding to a flightId
+        suint256[] storage policies = flightPolicies[flightId];
+        for (uint256 i = 0; suint256(i) < policies.length; i++) {
+            if (policies[suint256(i)] == policyId) {
+                policies[suint256(i)] = policies[suint256(policies.length - suint256(1))];
+                policies.pop();
+                break;
+            }
+        }
+        _sortFlightPolicies(flightId);
+    }
 
     /*
      * Sorts the flightPolicies array in descending order.
@@ -222,6 +212,32 @@ contract Fly is ReentrancyGuard {
             }
         }
         return left;
+    }
+
+    function _binarySearchCheapestPolicy(suint256 flightId) private view returns(suint256) {
+        suint256 left = 0;
+        suint256 right = flightPolicies[flightId].length - suint256(1);
+        suint256 cheapestId = flightPolicies[flightId][left];
+        suint256 lowestPremium = policies[cheapestId].premium;
+
+        while (left <= right) {
+            suint256 mid = left + (right - left) / suint256(2);
+            suint256 currentPolicyId = flightPolicies[flightId][mid];
+            Policy storage currentPolicy = policies[currentPolicyId];
+
+            if (!currentPolicy.isPurchased && currentPolicy.premium < lowestPremium) {
+                cheapestId = currentPolicyId;
+                lowestPremium = currentPolicy.premium;
+            }
+
+            if (currentPolicy.premium < lowestPremium) {
+                right = mid - suint256(1);
+            } else {
+                left = mid + suint256(1);
+            }
+        }
+
+        return cheapestId;
     }
 
     /*
