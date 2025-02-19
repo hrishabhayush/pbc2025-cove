@@ -36,7 +36,7 @@ contract CoveCoin is SRC20, ICoveCoin {
 
     /// @notice Returns the balance of msg.sender.
     function balanceOf() internal view returns (suint256) {
-        return super.balanceOf();
+        return suint256(super.balanceOf(saddress(msg.sender)));
     }
 
     /// @notice Transfers tokens to another address.
