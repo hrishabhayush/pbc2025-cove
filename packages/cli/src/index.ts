@@ -82,12 +82,11 @@ async function main() {
 
   // Simulating interactions between providers and passengers
   console.log('=== Creating policies ===')
-  await app.underwritePolicy()
-  await app.hit('Alice')
-  await app.shake('Alice', 4)
-  await app.hit('Alice')
-  await app.shake('Alice', 1)
-  await app.hit('Alice')
+  let policyCounter = 1;
+  for (const flight of simulationFlights) {
+     await app.createPolicy()
+  }
+  
 
   // Alice looks at the number in round 1, should be 7
   await app.look('Alice')
