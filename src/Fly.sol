@@ -154,7 +154,6 @@ contract Fly is ReentrancyGuard {
         _removeFromFlightPolicies(flightId, policyId);
     }
 
-
     /*//////////////////////////////////////////////////////////////
                             RESOLUTION
     //////////////////////////////////////////////////////////////*/
@@ -165,7 +164,35 @@ contract Fly is ReentrancyGuard {
         flightResolutions[flightId] = flightCancelled;
     }
 
+    /*
+     * Passengers can claim payout if the flight is cancelled
+     */
+    function claimPayout(suint256 policyId) external nonReentrant onlyPassenger {
+        Policy storage policy = policies[policyId];
+        require(policy.isPurchased, "Policy not purchased");
+        require(flightResolutions[policyId] == sbool(true), "No payout available");
 
+        // Coverage transferred from provider to passenger
+        flyAsset.transferFrom(policy.provider, policy.buyer, policy.coverage);
+
+        // Policy will be inactive after payout
+        policy.isActive = sbool(false);
+    }
+
+    /*
+     * Providers can claim back their coverage if the flight is on time
+     */
+    function claimCoverageBack(suint256 policyId) external nonReentrant onlyProvider {
+        Policy storage policy = policies[policyId];
+        require(policy.isPurchased, "Policy not purchased");
+        require(flightResolutions[policyId] == sbool(false), "Flight was cancelled");
+
+        // Coverage transferred back to provider
+        flyAsset.transferFrom(saddress(this), policy.provider, policy.coverage);
+
+        // Policy will be inactive after coverage is returned
+        policy.isActive = sbool(false);
+    }
 
     /*
      * Add the flight policy in sorted order in the flightPolicies array. 
