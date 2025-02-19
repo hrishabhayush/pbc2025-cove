@@ -1,7 +1,7 @@
 // // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Script, console} from "forge-std/src/Script.sol";
+import {Script, console} from "lib/forge-std/src/Script.sol";
 import {Cove} from "../src/Cove.sol";
 import {CoveCoin} from "../src/CoveCoin.sol";
 
@@ -17,8 +17,6 @@ contract CoveScript is Script {
 
         saddress[] memory providers = new saddress[](suint256(1));
         providers[suint256(0)] = saddress(0x789);
-
-        coveAsset = new CoveCoin(admin, "Cove Coin", "COVE", 18);
 
         cove = new Cove(saddress(admin), passengers, providers, coveAsset);
     }

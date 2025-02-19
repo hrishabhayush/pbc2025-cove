@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT License
 pragma solidity ^0.8.13;
 
-import "solmate/src/utils/ReentrancyGuard.sol";
+import "lib/solmate/src/utils/ReentrancyGuard.sol";
 import {CoveCoin} from "./CoveCoin.sol";
 
 contract Cove is ReentrancyGuard {
@@ -70,7 +70,12 @@ contract Cove is ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                              CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
-    constructor(saddress _adminAddress, saddress[] memory _passengers, saddress[] memory _providers, CoveCoin _coveAsset) {
+    constructor(
+        saddress _adminAddress,
+        saddress[] memory _passengers,
+        saddress[] memory _providers,
+        CoveCoin _coveAsset
+    ) {
         adminAddress = _adminAddress;
         for (uint256 i = 0; suint256(i) < _passengers.length; i++) {
             isPassenger[_passengers[suint256(i)]] = sbool(true);
