@@ -99,7 +99,7 @@ async function main() {
   // Error if someone now tries to call the buyPolicy function when there is no flight policy available
   console.error(app.buyPolicy(passengers[5].name, flights[1].flightId))
 
-  app.buyPolicy(providers[6].name, flights[0].flightId) // Policy 5 is sold
+  app.buyPolicy(passengers[6].name, flights[0].flightId) // Policy 5 is sold
 
   console.log('=== Resolving claims ===')
 
