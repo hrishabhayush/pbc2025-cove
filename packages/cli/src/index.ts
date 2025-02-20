@@ -75,12 +75,12 @@ async function main() {
 
   // Simulating interactions between providers and passengers
   console.log('=== Creating policies ===')
-  app.createPolicy(providers[0].name, 1, flights[0].flightId, BigInt(1e16), BigInt(1e20))
-  app.createPolicy(providers[1].name, 2, flights[2].flightId, BigInt(1e17), BigInt(1e18))
-  app.createPolicy(providers[2].name, 3, flights[1].flightId, BigInt(1e19), BigInt(1e20))
-  app.createPolicy(providers[3].name, 4, flights[1].flightId, BigInt(1e18), BigInt(1e20))
-  app.createPolicy(providers[4].name, 5, flights[0].flightId, BigInt(1e19), BigInt(1e20))
-  app.createPolicy(providers[5].name, 6, flights[0].flightId, BigInt(1e17), BigInt(1e20))
+  app.createPolicy(providers[0].name, 1, flights[0].flightId, 5, 200)
+  app.createPolicy(providers[1].name, 2, flights[2].flightId, 25, 400)
+  app.createPolicy(providers[2].name, 3, flights[1].flightId, 50, 500)
+  app.createPolicy(providers[3].name, 4, flights[1].flightId, 40, 500)
+  app.createPolicy(providers[4].name, 5, flights[0].flightId, 20, 200)
+  app.createPolicy(providers[5].name, 6, flights[0].flightId, 15, 200)
 
   console.log('==== Buying policies ===')
   // Policy 1 has the lowest premium for flight with id 1

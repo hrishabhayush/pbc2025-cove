@@ -121,8 +121,8 @@ interface AppConfig {
       providerName: string, 
       policyId: number,
       flightId: number, 
-      premium: bigint, 
-      coverage: bigint
+      premium: number, 
+      coverage: number
     ) {
       console.log(`- ${providerName} underwriting policy for ${flightId}`)
       const contract = this.getProviderName(providerName)
