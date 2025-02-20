@@ -257,6 +257,7 @@ contract Cove is ReentrancyGuard {
         return left;
     }
 
+    // This needs to be off-chain
     /*
      * Binary search to find the cheapest policy that is available in the flightPolicies. 
      */
