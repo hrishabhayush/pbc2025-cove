@@ -102,6 +102,8 @@ contract Cove is ReentrancyGuard {
 
         policies[policyId] = policy;
 
+        coveAsset.transferFrom(saddress(msg.sender), saddress(this), coverage); // Store this in the contract
+
         _addToFlightPolicies(policies, flightId, policyId, premium);
     }
 

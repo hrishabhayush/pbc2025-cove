@@ -68,6 +68,7 @@ async function main() {
       abi: readContractABI(abiFile),
       address: readContractAddress(broadcastFile),
     },
+    gasLimit: 10000
   })
 
   await app.init()
@@ -84,48 +85,48 @@ async function main() {
 
   console.log('==== Buying policies ===')
   // Policy 1 has the lowest premium for flight with id 1
-  app.buyPolicy(passengers[0].name, flights[0].flightId)
+  // app.buyPolicy(passengers[0].name, flights[0].flightId)
 
   // Policy 6 would be bought by this user as that has the next cheapest premium
-  app.buyPolicy(passengers[1].name, flights[0].flightId)
+  // app.buyPolicy(passengers[1].name, flights[0].flightId)
 
   // As there is only one policy the policy with id 2 will be sold
-  app.buyPolicy(passengers[2].name, flights[2].flightId) 
+  //app.buyPolicy(passengers[2].name, flights[2].flightId) 
 
   // For a passenger on flight with id 2, policy 4 will be sold
-  app.buyPolicy(passengers[3].name, flights[1].flightId) // Policy 3
-  app.buyPolicy(passengers[4].name, flights[1].flightId) // Policy 4
+  //app.buyPolicy(passengers[3].name, flights[1].flightId) // Policy 3
+  //app.buyPolicy(passengers[4].name, flights[1].flightId) // Policy 4
 
   // Error if someone now tries to call the buyPolicy function when there is no flight policy available
-  console.error(app.buyPolicy(passengers[5].name, flights[1].flightId))
+  // console.error(app.buyPolicy(passengers[5].name, flights[1].flightId))
 
-  app.buyPolicy(passengers[6].name, flights[0].flightId) // Policy 5 is sold
+  // app.buyPolicy(passengers[6].name, flights[0].flightId) // Policy 5 is sold
 
-  console.log('=== Resolving claims ===')
+  // console.log('=== Resolving claims ===')
 
-  app.resolvePolicy(passengers[0].name, flights[0].flightId, true) // Flight 1 is cancelled
-  app.resolvePolicy(passengers[1].name, flights[0].flightId, true) 
-  app.resolvePolicy(passengers[3].name, flights[1].flightId, false) // Flight 2 is on time
-  app.resolvePolicy(passengers[4].name, flights[1].flightId, false)
-  app.resolvePolicy(passengers[6].name, flights[0].flightId, true)
+  // app.resolvePolicy(passengers[0].name, flights[0].flightId, true) // Flight 1 is cancelled
+  // app.resolvePolicy(passengers[1].name, flights[0].flightId, true) 
+  // app.resolvePolicy(passengers[3].name, flights[1].flightId, false) // Flight 2 is on time
+  // app.resolvePolicy(passengers[4].name, flights[1].flightId, false)
+  // app.resolvePolicy(passengers[6].name, flights[0].flightId, true)
 
   // No policy was sold for the 3rd flight
 
-  console.log('=== Claim payouts ===')
-  app.claimPayout(passengers[0].name, 1)
-  console.error(app.claimPayout(passengers[1].name, 1), "Not the correct policy") // As this is not the correct policy
-  app.claimPayout(passengers[1].name, 6)
+  // console.log('=== Claim payouts ===')
+  // app.claimPayout(passengers[0].name, 1)
+  // console.error(app.claimPayout(passengers[1].name, 1), "Not the correct policy") // As this is not the correct policy
+  // app.claimPayout(passengers[1].name, 6)
   
-  app.claimPayout(passengers[6].name, 5)
+  // app.claimPayout(passengers[6].name, 5)
 
-  console.log('=== Claiming coverage back ===')
+  // console.log('=== Claiming coverage back ===')
 
-  app.claimCoverageBack(providers[2].name, 3)
-  console.error(app.claimCoverageBack(providers[3].name, 5), "This is not the policy you created")
+  // app.claimCoverageBack(providers[2].name, 3)
+  // console.error(app.claimCoverageBack(providers[3].name, 5), "This is not the policy you created")
 
-  app.claimCoverageBack(providers[3].name, 4)
+  // app.claimCoverageBack(providers[3].name, 4)
 
-  console.log('=== Claims resolved ===')
+  // console.log('=== Claims resolved ===')
 
 }
 
