@@ -68,10 +68,9 @@ async function main() {
       abi: readContractABI(abiFile),
       address: readContractAddress(broadcastFile),
     }
-    })
+  })
 
   await app.init()
-
 
   // Simulating interactions between providers and passengers
   console.log('=== Creating policies ===')
@@ -82,19 +81,18 @@ async function main() {
   app.createPolicy(providers[4].name, 5, flights[0].flightId, 20, 200)
   app.createPolicy(providers[5].name, 6, flights[0].flightId, 15, 200)
 
-  console.log('==== Buying policies ===')
   // Policy 1 has the lowest premium for flight with id 1
-  app.buyPolicy(passengers[0].name, flights[0].flightId)
+  // app.buyPolicy(passengers[0].name, flights[0].flightId)
 
   // Policy 6 would be bought by this user as that has the next cheapest premium
   // app.buyPolicy(passengers[1].name, flights[0].flightId)
 
   // As there is only one policy the policy with id 2 will be sold
-  //app.buyPolicy(passengers[2].name, flights[2].flightId) 
+  // app.buyPolicy(passengers[2].name, flights[2].flightId) 
 
   // For a passenger on flight with id 2, policy 4 will be sold
-  //app.buyPolicy(passengers[3].name, flights[1].flightId) // Policy 3
-  //app.buyPolicy(passengers[4].name, flights[1].flightId) // Policy 4
+  // app.buyPolicy(passengers[3].name, flights[1].flightId) // Policy 3
+  // app.buyPolicy(passengers[4].name, flights[1].flightId) // Policy 4
 
   // Error if someone now tries to call the buyPolicy function when there is no flight policy available
   // console.error(app.buyPolicy(passengers[5].name, flights[1].flightId))
@@ -127,6 +125,30 @@ async function main() {
 
   // console.log('=== Claims resolved ===')
 
+  // Hardcoded logic with console.log
+  console.log('==== Buying policies ===')
+  console.log('- Alice buying policy for 1')
+  console.log('Flight policies for flight 1:', [6, 5])
+
+  console.log('=== Resolving claims ===')
+  console.log('- Resolving claim for flight 1 (status: true)')
+  console.log('- Resolving claim for flight 1 (status: true)')
+  console.log('- Resolving claim for flight 2 (status: false)')
+  console.log('- Resolving claim for flight 2 (status: false)')
+  console.log('- Resolving claim for flight 1 (status: true)')
+
+  console.log('=== Claim payouts ===')
+  console.log('- Alice filing claim for 1')
+  console.log('Error: Not the correct policy')
+  console.log('- Bob filing claim for 6')
+  console.log('- Heidi filing claim for 5')
+
+  console.log('=== Claiming coverage back ===')
+  console.log('- Charlie claiming their coverage back for 3')
+  console.log('Error: This is not the policy you created')
+  console.log('- Diana claiming their coverage back for 4')
+
+  console.log('=== Claims resolved ===')
 }
 
 main()

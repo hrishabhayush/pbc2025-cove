@@ -133,7 +133,7 @@ contract Cove is ReentrancyGuard {
         // Mark policy as purchased
         policy.isPurchased = sbool(true);
         passengerPolicies[saddress(msg.sender)].push(policyId);
-        _removeFromFlightPolicies(flightId, policyId);
+        // _removeFromFlightPolicies(flightId, policyId);
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -39,7 +39,7 @@ interface AppConfig {
     private providerContracts: Map<string, ShieldedContract> = new Map()
     private passengerClients: Map<string, ShieldedWalletClient> = new Map()
     private passengerContracts: Map<string, ShieldedContract> = new Map()
-
+    private flightPolicies: Map<number, number[]> = new Map();
   
     constructor(config: AppConfig) {
       this.config = config

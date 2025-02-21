@@ -69,41 +69,41 @@ contract CoveTest is Test {
 
         
         // Verify policy state
-        (,,, address buyer,, bool isPurchased) = cove.getPolicy(uint256(POLICY_ID));
+        (,,,, address buyer,, bool isPurchased) = cove.getPolicy(uint256(POLICY_ID));
         assertEq(buyer, PASSENGER);
         assertEq(isPurchased, true);
     }
 
-    //     function test_FlightCancelledPayout() public {
-    //         setupPolicyPurchase();  // Use helper instead of test function
+    function test_FlightCancelledPayout() public {
+        setupPolicyPurchase();  // Use helper instead of test function
 
-    //         vm.startPrank(ADMIN);
-    //         cove.resolvePolicy(suint256(FLIGHT_ID), sbool(true));
-    //         vm.stopPrank();
+        vm.startPrank(ADMIN);
+        cove.resolvePolicy(suint256(FLIGHT_ID), sbool(true));
+        vm.stopPrank();
 
-    //         vm.startPrank(PASSENGER);
-    //         cove.claimPayout(suint256(POLICY_ID));
-    //         vm.stopPrank();
+        vm.startPrank(PASSENGER);
+        cove.claimPayout(suint256(POLICY_ID));
+        vm.stopPrank();
 
-    //         (bool success, uint256 balance) = coveAsset.safeBalanceOf(saddress(PASSENGER));
-    //         assertTrue(success);
-    //         assertEq(balance, 100 ether - 1 ether + 10 ether);
-    //     }
+        (bool success, uint256 balance) = coveAsset.balanceOf(saddress(PASSENGER));
+        assertTrue(success);
+        assertEq(balance, 100 ether - 1 ether + 10 ether);
+    }
 
-    //     function test_FlightOnTimeCoverage() public {
-    //         setupPolicyPurchase();  // Use helper instead of test function
+    function test_FlightOnTimeCoverage() public {
+        setupPolicyPurchase();  // Use helper instead of test function
 
-    //         vm.startPrank(ADMIN);
-    //         cove.resolvePolicy(suint256(FLIGHT_ID), sbool(false));
-    //         vm.stopPrank();
+        vm.startPrank(ADMIN);
+        cove.resolvePolicy(suint256(FLIGHT_ID), sbool(false));
+        vm.stopPrank();
 
-    //         vm.startPrank(PROVIDER);
-    //         cove.claimCoverageBack(suint256(POLICY_ID));
-    //         vm.stopPrank();
+        vm.startPrank(PROVIDER);
+        cove.claimCoverageBack(suint256(POLICY_ID));
+        vm.stopPrank();
 
 
-//         (bool success, uint256 balance) = coveAsset.safeBalanceOf(saddress(PROVIDER));
-    //         assertTrue(success);
-    //         assertEq(balance, 1000 ether - 10 ether + 1 ether);
-    //     }
+    (bool success, uint256 balance) = coveAsset.balanceOf(saddress(PROVIDER));
+        assertTrue(success);
+        assertEq(balance, 1000 ether - 10 ether + 1 ether);
+    }
 }
