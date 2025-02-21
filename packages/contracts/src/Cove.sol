@@ -184,12 +184,6 @@ contract Cove is ReentrancyGuard {
         suint256 policyId,
         suint256 premium
     ) internal {
-        // Initialize array if empty
-        if (flightPolicies[flightId].length == suint256(0)) {
-            flightPolicies[flightId].push(policyId);
-            return;
-        }
-
         uint256 insertIndex = _findInsertPosition(globalPolicies, flightPolicies[flightId], premium);
         flightPolicies[flightId].push(suint256(0));
 
@@ -217,10 +211,10 @@ contract Cove is ReentrancyGuard {
             uint256 mid = left + (right - left) / 2;
             suint256 midPremium = globalPolicies[list[suint256(mid)]].premium;
 
-            if (midPremium < newPremium) {
-                right = mid;
-            } else {
+            if (midPremium > newPremium) {
                 left = mid + 1;
+            } else {
+                right = mid;
             }
         }
         return left;
@@ -230,82 +224,65 @@ contract Cove is ReentrancyGuard {
      */
     function _removeFromFlightPolicies(suint256 flightId, suint256 policyId) internal {
         // Get the policies corresponding to a flightId
-        uint256 index = 0;
-        for (uint256 i = 0; suint256(i) < flightPolicies[flightId].length; i++) {
-            if (flightPolicies[flightId][suint256(i)] == policyId) {
-                index = i;
-                break;
+        suint256[] storage policyList  = flightPolicies[flightId];
+        suint256 length = policyList.length;
+
+        for (uint256 i = 0; suint256(i) < length; i++) {
+            if (policyList[suint256(i)] == policyId) {
+                if (suint256(i) < length - suint256(1)) {
+                    policyList[suint256(i)] = policyList[length - suint256(1)];
+                }
+                policyList.pop();
+                return;
             }
         }
-
-        // Remove the policy from the flightPolicies array
-        for (uint256 i = index; suint256(i) < flightPolicies[flightId].length - suint256(1); i++) {
-            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][suint256(i + 1)];
-        }
-        flightPolicies[flightId].pop();
     }
 
     // This needs to be off-chain
     /*
      * Binary search to find the cheapest policy that is available in the flightPolicies. 
      */
-    // function _binarySearchCheapestPolicy(suint256 flightId) private view returns (suint256) {
-    //     suint256[] storage policyList = flightPolicies[flightId];
-    //     require(policyList.length > suint256(0), "No policies available for this flight");
-
-    //     uint256 left;
-    //     uint256 right = uint256(policyList.length) - 1;
-    //     suint256 cheapestAvailable = policyList[suint256(right)];
-    //     bool found = false;
-
-    //     while (left <= right) {
-    //         uint256 mid = left + (right - left) / 2;
-    //         suint256 midPolicyId = policyList[suint256(mid)];
-    //         Policy storage currentPolicy = policies[midPolicyId];
-
-    //         if (!currentPolicy.isPurchased && currentPolicy.isActive) {
-               
-    //             // Move left to find earlier (cheaper) available policies
-    //             cheapestAvailable = midPolicyId;
-    //             found = true;
-    //             right = mid - 1;
-    //         } else {
-    //             left = mid + 1;
-    //         }
-    //     }
-    //     require(found, "No available policies");
-    //     return cheapestAvailable;
-    // }
     function _binarySearchCheapestPolicy(suint256 flightId) private view returns (suint256) {
         suint256[] storage policyList = flightPolicies[flightId];
         require(policyList.length > suint256(0), "No policies available for this flight");
 
-        // Search from the end (cheapest) towards start
-        for (suint256 i = policyList.length; i > suint256(0); i--) {
-            suint256 policyId = policyList[i - suint256(1)];
-            Policy storage policy = policies[policyId];
-            
-            if (policy.isActive && !policy.isPurchased) {
-                return policyId;
+        uint256 left;
+        uint256 right = uint256(policyList.length) - 1;
+        suint256 cheapestAvailable = policyList[suint256(right)];
+        bool found = false;
+
+        while (left <= right) {
+            uint256 mid = left + (right - left) / 2;
+            suint256 midPolicyId = policyList[suint256(mid)];
+            Policy storage currentPolicy = policies[midPolicyId];
+
+            if (!currentPolicy.isPurchased && currentPolicy.isActive) {
+               
+                // Move left to find earlier (cheaper) available policies
+                cheapestAvailable = midPolicyId;
+                found = true;
+                right = mid - 1;
+            } else {
+                left = mid + 1;
             }
         }
-        
-        revert("No available policies");
+        require(found, "No available policies");
+        return cheapestAvailable;
     }
-
+   
     function getPolicy(uint256 policyId)
         external
         view
         returns (uint256 premium, uint256 coverage, address provider, address buyer, bool isActive, bool isPurchased)
     {
-        Policy storage policy = policies[suint256(policyId)];
+        Policy storage policyList = policies[suint256(policyId)];
         return (
-            uint256(policy.premium),
-            uint256(policy.coverage),
-            address(policy.provider),
-            address(policy.buyer),
-            bool(policy.isActive),
-            bool(policy.isPurchased)
+            uint256(policyList.premium),
+            uint256(policyList.coverage),
+            address(policyList.provider),
+            address(policyList.buyer),
+            bool(policyList.isActive),
+            bool(policyList.isPurchased)
         );
     }
 }
