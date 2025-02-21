@@ -46,12 +46,15 @@ contract CoveTest is Test {
     function setupPolicyPurchase() internal {
         // Provider creates policy
         vm.startPrank(PROVIDER);
-        cove.createPolicy(suint256(POLICY_ID), suint256(FLIGHT_ID), suint256(1 ether), suint256(10 ether));
+        console.log("PROVIDER");
+        cove.createPolicy(suint256(POLICY_ID), suint256(FLIGHT_ID), suint(1e18), suint256(1e18));
+        console.log("?");
         vm.stopPrank();
 
         // Passenger buys policy
         vm.startPrank(PASSENGER);
         coveAsset.approve(saddress(address(cove)), suint256(1 ether));
+        console.log("reaches here");
         cove.buyPolicy(suint256(FLIGHT_ID));
         vm.stopPrank();
     }
