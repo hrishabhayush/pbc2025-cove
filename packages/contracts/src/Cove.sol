@@ -18,6 +18,7 @@ contract Cove is ReentrancyGuard {
      * Flight insurance policy provided by an insurer/provider. 
      */
     struct Policy {
+        suint256 flightId;
         suint256 premium;
         suint256 coverage;
         saddress provider;
@@ -91,43 +92,43 @@ contract Cove is ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                             PROVIDER
     //////////////////////////////////////////////////////////////*/
+
     /*
-     * Provider creates a policy.
+     * Provider creates a policy and then updates the global policies and the flight policies. 
      */
     function createPolicy(suint256 policyId, suint256 flightId, suint256 premium, suint256 coverage)
         external
         onlyProvider
     {
-        Policy memory policy = Policy(premium, coverage, saddress(msg.sender), saddress(0), sbool(true), sbool(false));
+        Policy memory policy = Policy(flightId, premium, coverage, saddress(msg.sender), saddress(0), sbool(true), sbool(false));
 
         policies[policyId] = policy;
 
-        coveAsset.transferFrom(saddress(msg.sender), saddress(this), coverage); // Store this in the contract
-
         _addToFlightPolicies(policies, flightId, policyId, premium);
+    
+        coveAsset.transferFrom(saddress(msg.sender), saddress(this), coverage); // Store this in the contract
     }
 
     /*//////////////////////////////////////////////////////////////
                             PASSENGER
     //////////////////////////////////////////////////////////////*/
-    function getCheapestPolicy(suint256 flightId) private view returns (suint256) {
-        require(flightPolicies[flightId].length > suint256(0), "No policies available for this flight");
-
-        suint256 cheapestId = _binarySearchCheapestPolicy(flightId);
-        return cheapestId;
-    }
 
     function buyPolicy(suint256 flightId) external onlyPassenger nonReentrant {
-        suint256 policyId = getCheapestPolicy(flightId);
+        require(flightPolicies[flightId].length > suint256(0), "No policies available for this flight");
+
+        suint256 policyId = flightPolicies[flightId][flightPolicies[flightId].length - suint256(1)];
+
+        flightPolicies[flightId].pop();
 
         Policy storage policy = policies[policyId];
+
         require(policy.isActive, "Policy is not active");
         require(!policy.isPurchased, "Policy is already purchased");
 
-        policy.buyer = saddress(msg.sender); // Need to update the buyer
-
         // Transfer premium from passenger to contract
         coveAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
+
+        policy.buyer = saddress(msg.sender); // Need to update the buyer
 
         // Mark policy as purchased
         policy.isPurchased = sbool(true);
@@ -184,16 +185,10 @@ contract Cove is ReentrancyGuard {
         suint256 policyId,
         suint256 premium
     ) internal {
-        uint256 insertIndex = _findInsertPosition(globalPolicies, flightPolicies[flightId], premium);
-        flightPolicies[flightId].push(suint256(0));
+        flightPolicies[flightId].push(policyId);
 
-        // Shift elements to the right
-        for (suint256 i = flightPolicies[flightId].length - suint256(1); i > suint256(insertIndex); i--) {
-            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][i - suint256(1)];
-        }
-        
-        // Insert new policy at correct position
-        flightPolicies[flightId][suint256(insertIndex)] = policyId;    
+        // Now quick sort the elements
+        quickSort(flightPolicies[flightId], suint256(0), flightPolicies[flightId].length);
     }
 
     /*
@@ -237,39 +232,10 @@ contract Cove is ReentrancyGuard {
             }
         }
     }
-
-    // This needs to be off-chain
+    
     /*
-     * Binary search to find the cheapest policy that is available in the flightPolicies. 
+     * Gets a policy corresponding to a policyId
      */
-    function _binarySearchCheapestPolicy(suint256 flightId) private view returns (suint256) {
-        suint256[] storage policyList = flightPolicies[flightId];
-        require(policyList.length > suint256(0), "No policies available for this flight");
-
-        uint256 left;
-        uint256 right = uint256(policyList.length) - 1;
-        suint256 cheapestAvailable = policyList[suint256(right)];
-        bool found = false;
-
-        while (left <= right) {
-            uint256 mid = left + (right - left) / 2;
-            suint256 midPolicyId = policyList[suint256(mid)];
-            Policy storage currentPolicy = policies[midPolicyId];
-
-            if (!currentPolicy.isPurchased && currentPolicy.isActive) {
-               
-                // Move left to find earlier (cheaper) available policies
-                cheapestAvailable = midPolicyId;
-                found = true;
-                right = mid - 1;
-            } else {
-                left = mid + 1;
-            }
-        }
-        require(found, "No available policies");
-        return cheapestAvailable;
-    }
-   
     function getPolicy(uint256 policyId)
         external
         view
@@ -284,5 +250,34 @@ contract Cove is ReentrancyGuard {
             bool(policyList.isActive),
             bool(policyList.isPurchased)
         );
+    }
+
+    function quickSort(suint256[] storage arr, suint256 left, suint256 right) internal {
+        if (left >= right) return;
+
+        suint256 pivotIndex = left + (right - left) / suint256(2);
+        suint256 pivotId = arr[pivotIndex];
+        suint256 pivotPremium = policies[pivotId].premium;
+
+        suint256 i = left;
+        suint256 j = right;
+
+        while (i <= j) {
+            while (policies[arr[i]].premium > pivotPremium) {
+                i++;
+            }
+            while (policies[arr[j]].premium < pivotPremium) {
+                j--;
+            }
+
+            if (i <= j) {
+                (arr[i], arr[j]) = (arr[j], arr[i]);
+                i++;
+                if (j > suint256(0)) j--;
+            }
+        }
+
+        quickSort(arr, left, j);
+        quickSort(arr, i, right);
     }
 }
