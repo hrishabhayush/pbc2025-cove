@@ -36,8 +36,8 @@ contract CoveTest is Test {
         cove = new Cove(saddress(ADMIN), passengers, providers, coveAsset);
 
         // Fund provider with coverage
-        coveAsset.mint(saddress(PROVIDER), suint256(1e18));
-        coveAsset.mint(saddress(PASSENGER), suint256(1e18));
+        coveAsset.mint(saddress(PROVIDER), suint256(2 ether));
+        coveAsset.mint(saddress(PASSENGER), suint256(2 ether));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -46,12 +46,17 @@ contract CoveTest is Test {
     function setupPolicyPurchase() internal {
         // Provider creates policy
         vm.startPrank(PROVIDER);
-        cove.createPolicy(suint256(POLICY_ID), suint256(FLIGHT_ID), suint256(1 ether), suint256(10 ether));
+        console.log("PROVIDER");
+        console.log("reaches here 1");
+        coveAsset.approve(saddress(address(cove)), suint256(1 ether));
+        cove.createPolicy(suint256(POLICY_ID), suint256(FLIGHT_ID), suint256(1 ether), suint256(1 ether));
+        console.log("reaches here 2");
         vm.stopPrank();
 
         // Passenger buys policy
         vm.startPrank(PASSENGER);
         coveAsset.approve(saddress(address(cove)), suint256(1 ether));
+        console.log("reaches here");
         cove.buyPolicy(suint256(FLIGHT_ID));
         vm.stopPrank();
     }
@@ -62,6 +67,7 @@ contract CoveTest is Test {
     function test_PolicyPurchaseFlow() public {
         setupPolicyPurchase();
 
+        
         // Verify policy state
         (,,, address buyer,, bool isPurchased) = cove.getPolicy(uint256(POLICY_ID));
         assertEq(buyer, PASSENGER);
@@ -95,7 +101,8 @@ contract CoveTest is Test {
     //         cove.claimCoverageBack(suint256(POLICY_ID));
     //         vm.stopPrank();
 
-    //         (bool success, uint256 balance) = coveAsset.safeBalanceOf(saddress(PROVIDER));
+
+//         (bool success, uint256 balance) = coveAsset.safeBalanceOf(saddress(PROVIDER));
     //         assertTrue(success);
     //         assertEq(balance, 1000 ether - 10 ether + 1 ether);
     //     }
