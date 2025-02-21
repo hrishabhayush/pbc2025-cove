@@ -1,6 +1,6 @@
 # Cove
 
-![Cove banner](assets/encryp.png)
+![Cove banner](assets/encrypt.png)
 ## Problem
 Flight insurance claims take months to settle, and data leaks are rampant.
 
