@@ -107,30 +107,6 @@ contract Cove is ReentrancyGuard {
         _addToFlightPolicies(policies, flightId, policyId, premium);
     }
 
-    /* 
-     * Providers are allowed to set the premium fee for policy. 
-     */
-    function updatePremium(suint256 policyId, suint256 flightId, suint256 newPremium) external onlyProvider {
-        Policy storage policy = policies[policyId];
-
-        require(policy.provider == saddress(msg.sender), "Not your policy");
-        require(!policy.isPurchased, "Policy already purchased");
-
-        uint256 index = 0;
-        for (uint256 i = 0; suint(i) < flightPolicies[flightId].length; i++) {
-            if (flightPolicies[flightId][suint256(i)] == policyId) {
-                index = i;
-                break;
-            }
-        }
-
-        for (uint256 i = index; suint(i + 1) < flightPolicies[flightId].length; i++) {
-            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][suint256(i + 1)];
-            flightPolicies[flightId].pop();
-            _binaryInsertionSort(policies, flightPolicies[flightId], newPremium);
-        }
-    }
-
     /*//////////////////////////////////////////////////////////////
                             PASSENGER
     //////////////////////////////////////////////////////////////*/
@@ -208,15 +184,47 @@ contract Cove is ReentrancyGuard {
         suint256 policyId,
         suint256 premium
     ) internal {
-        flightPolicies[flightId].push(policyId);
-        suint256 pos = _binaryInsertionSort(globalPolicies, flightPolicies[flightId], premium);
-        flightPolicies[flightId].push(suint256(0));
-        for (uint256 i = uint256(flightPolicies[flightId].length) - 1; suint256(i) >= pos; i--) {
-            flightPolicies[suint256(i + 1)] = flightPolicies[suint256(i)];
+        // Initialize array if empty
+        if (flightPolicies[flightId].length == suint256(0)) {
+            flightPolicies[flightId].push(policyId);
+            return;
         }
-        flightPolicies[pos] = flightPolicies[policyId];
+
+        uint256 insertIndex = _findInsertPosition(globalPolicies, flightPolicies[flightId], premium);
+        flightPolicies[flightId].push(suint256(0));
+
+        // Shift elements to the right
+        for (suint256 i = flightPolicies[flightId].length - suint256(1); i > suint256(insertIndex); i--) {
+            flightPolicies[flightId][suint256(i)] = flightPolicies[flightId][i - suint256(1)];
+        }
+        
+        // Insert new policy at correct position
+        flightPolicies[flightId][suint256(insertIndex)] = policyId;    
     }
 
+    /*
+     * Finds the insert position for a policy as soon as it is created. 
+     */
+    function _findInsertPosition(
+        mapping(suint256 => Policy) storage globalPolicies,
+        suint256[] storage list,
+        suint256 newPremium
+    ) private view returns (uint256) {
+        uint256 left = 0;
+        uint256 right = uint256(list.length);
+
+        while (left < right) {
+            uint256 mid = left + (right - left) / 2;
+            suint256 midPremium = globalPolicies[list[suint256(mid)]].premium;
+
+            if (midPremium < newPremium) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
     /*
      * Removes a flightPolicy from the flightPolicies.
      */
@@ -237,58 +245,52 @@ contract Cove is ReentrancyGuard {
         flightPolicies[flightId].pop();
     }
 
-    /*
-     * Sorts the flightPolicies array in descending order and inserts the policy to preserve that
-     * descending order.
-     */
-    function _binaryInsertionSort(
-        mapping(suint256 => Policy) storage globalPolicies,
-        suint256[] storage list,
-        suint256 premium
-    ) internal view returns (suint256) {
-        suint256 left = list.length - suint256(1);
-        suint256 right;
-
-        while (globalPolicies[left].premium > globalPolicies[right].premium) {
-            suint256 mid = right + (left - right) / suint256(2);
-
-            if (globalPolicies[mid].premium < premium) {
-                right = mid;
-            } else {
-                left = mid + suint256(1);
-            }
-        }
-        return left;
-    }
-
     // This needs to be off-chain
     /*
      * Binary search to find the cheapest policy that is available in the flightPolicies. 
      */
+    // function _binarySearchCheapestPolicy(suint256 flightId) private view returns (suint256) {
+    //     suint256[] storage policyList = flightPolicies[flightId];
+    //     require(policyList.length > suint256(0), "No policies available for this flight");
+
+    //     uint256 left;
+    //     uint256 right = uint256(policyList.length) - 1;
+    //     suint256 cheapestAvailable = policyList[suint256(right)];
+    //     bool found = false;
+
+    //     while (left <= right) {
+    //         uint256 mid = left + (right - left) / 2;
+    //         suint256 midPolicyId = policyList[suint256(mid)];
+    //         Policy storage currentPolicy = policies[midPolicyId];
+
+    //         if (!currentPolicy.isPurchased && currentPolicy.isActive) {
+               
+    //             // Move left to find earlier (cheaper) available policies
+    //             cheapestAvailable = midPolicyId;
+    //             found = true;
+    //             right = mid - 1;
+    //         } else {
+    //             left = mid + 1;
+    //         }
+    //     }
+    //     require(found, "No available policies");
+    //     return cheapestAvailable;
+    // }
     function _binarySearchCheapestPolicy(suint256 flightId) private view returns (suint256) {
-        suint256 left;
-        suint256 right = flightPolicies[flightId].length - suint256(1);
-        suint256 cheapestId = flightPolicies[flightId][left];
-        suint256 lowestPremium = policies[cheapestId].premium;
+        suint256[] storage policyList = flightPolicies[flightId];
+        require(policyList.length > suint256(0), "No policies available for this flight");
 
-        while (left <= right) {
-            suint256 mid = left + (right - left) / suint256(2);
-            suint256 currentPolicyId = flightPolicies[flightId][mid];
-            Policy storage currentPolicy = policies[currentPolicyId];
-
-            if (!currentPolicy.isPurchased && sbool(currentPolicy.premium < lowestPremium)) {
-                cheapestId = currentPolicyId;
-                lowestPremium = currentPolicy.premium;
-            }
-
-            if (currentPolicy.premium < lowestPremium) {
-                right = mid - suint256(1);
-            } else {
-                left = mid + suint256(1);
+        // Search from the end (cheapest) towards start
+        for (suint256 i = policyList.length; i > suint256(0); i--) {
+            suint256 policyId = policyList[i - suint256(1)];
+            Policy storage policy = policies[policyId];
+            
+            if (policy.isActive && !policy.isPurchased) {
+                return policyId;
             }
         }
-
-        return cheapestId;
+        
+        revert("No available policies");
     }
 
     function getPolicy(uint256 policyId)
