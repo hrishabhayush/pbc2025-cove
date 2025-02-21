@@ -67,9 +67,8 @@ async function main() {
     contract: {
       abi: readContractABI(abiFile),
       address: readContractAddress(broadcastFile),
-    },
-    gasLimit: 10000
-  })
+    }
+    })
 
   await app.init()
 
@@ -85,7 +84,7 @@ async function main() {
 
   console.log('==== Buying policies ===')
   // Policy 1 has the lowest premium for flight with id 1
-  // app.buyPolicy(passengers[0].name, flights[0].flightId)
+  app.buyPolicy(passengers[0].name, flights[0].flightId)
 
   // Policy 6 would be bought by this user as that has the next cheapest premium
   // app.buyPolicy(passengers[1].name, flights[0].flightId)

@@ -98,7 +98,7 @@ contract Cove is ReentrancyGuard {
         external
         onlyProvider
     {
-        Policy memory policy = Policy(premium, coverage, saddress(msg.sender), saddress(0), sbool(false), sbool(false));
+        Policy memory policy = Policy(premium, coverage, saddress(msg.sender), saddress(0), sbool(true), sbool(false));
 
         policies[policyId] = policy;
 
@@ -147,6 +147,8 @@ contract Cove is ReentrancyGuard {
         Policy storage policy = policies[policyId];
         require(policy.isActive, "Policy is not active");
         require(!policy.isPurchased, "Policy is already purchased");
+
+        policy.buyer = saddress(msg.sender); // Need to update the buyer
 
         // Transfer premium from passenger to contract
         coveAsset.transferFrom(saddress(msg.sender), saddress(address(this)), policy.premium);
@@ -287,5 +289,21 @@ contract Cove is ReentrancyGuard {
         }
 
         return cheapestId;
+    }
+
+    function getPolicy(uint256 policyId)
+        external
+        view
+        returns (uint256 premium, uint256 coverage, address provider, address buyer, bool isActive, bool isPurchased)
+    {
+        Policy storage policy = policies[suint256(policyId)];
+        return (
+            uint256(policy.premium),
+            uint256(policy.coverage),
+            address(policy.provider),
+            address(policy.buyer),
+            bool(policy.isActive),
+            bool(policy.isPurchased)
+        );
     }
 }

@@ -127,6 +127,7 @@ interface AppConfig {
       console.log(`- ${providerName} underwriting policy for ${flightId}`)
       const contract = this.getProviderName(providerName)
       await contract.write.createPolicy([policyId, flightId, premium, coverage], {gas: 100000})
+      console.log(`Policy ${policyId} created for flight ${flightId} with premium ${premium} and coverage ${coverage}`)
     }
 
     /**
