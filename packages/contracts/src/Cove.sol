@@ -239,10 +239,11 @@ contract Cove is ReentrancyGuard {
     function getPolicy(uint256 policyId)
         external
         view
-        returns (uint256 premium, uint256 coverage, address provider, address buyer, bool isActive, bool isPurchased)
+        returns (uint256 flightId, uint256 premium, uint256 coverage, address provider, address buyer, bool isActive, bool isPurchased)
     {
         Policy storage policyList = policies[suint256(policyId)];
         return (
+            uint256(policyList.flightId),
             uint256(policyList.premium),
             uint256(policyList.coverage),
             address(policyList.provider),
@@ -252,6 +253,9 @@ contract Cove is ReentrancyGuard {
         );
     }
 
+    /*
+     * Quick sort the policies based on the premium amount. 
+     */
     function quickSort(suint256[] storage arr, suint256 left, suint256 right) internal {
         if (left >= right) return;
 
