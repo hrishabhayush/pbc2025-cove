@@ -1,5 +1,8 @@
 # Cove
 
+# Award
+Won the Best product in Encrypted DeFi track at Penn Blockchain Conference & Hackathon 2025.
+
 ![Cove banner](assets/encrypt.png)
 ## Problem
 Flight insurance claims take months to settle, and data leaks are rampant.
